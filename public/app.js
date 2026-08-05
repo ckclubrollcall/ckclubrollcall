@@ -4,7 +4,7 @@ let contributionAnnotation = "部分程式內容由 [@mm-news](https://github.co
 /* 轉址 */
 app.use((req, res, next) => {
   if (req.headers.host === 'ckclubrollcall.onrender.com') {
-    return res.redirect(301, `https://your-domain.cksc.tw${req.originalUrl}`);
+    return res.redirect(301, `https://rollcall.cksc.tw${req.originalUrl}`);
   }
   next();
 });
