@@ -1,15 +1,3 @@
-const express = require('express');
-const app = express();
-
-// 【正確位置】放在最頂端
-app.use((req, res, next) => {
-  const host = req.headers.host || '';
-  if (host.includes('ckclubrollcall.onrender.com')) {
-    return res.redirect(301, `https://ckclubrollcall.cksc.tw${req.originalUrl}`);
-  }
-  next();
-});
-
 /* 貢獻註記 */
 let contributionAnnotation = "部分程式內容由 [@mm-news](https://github.com/mm-news) 以 [CC BY 4.0 License](https://creativecommons.org/licenses/by/4.0/) 貢獻";
 
