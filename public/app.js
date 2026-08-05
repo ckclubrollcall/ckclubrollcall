@@ -1,7 +1,11 @@
-/* 轉址 */
+const express = require('express');
+const app = express();
+
+// 【正確位置】放在最頂端
 app.use((req, res, next) => {
-  if (req.headers.host === 'ckclubrollcall.onrender.com') {
-    return res.redirect(301, `https://rollcall.cksc.tw${req.originalUrl}`);
+  const host = req.headers.host || '';
+  if (host.includes('ckclubrollcall.onrender.com')) {
+    return res.redirect(301, `https://ckclubrollcall.cksc.tw${req.originalUrl}`);
   }
   next();
 });
