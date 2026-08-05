@@ -1,6 +1,14 @@
 /* 貢獻註記 */
 let contributionAnnotation = "部分程式內容由 [@mm-news](https://github.com/mm-news) 以 [CC BY 4.0 License](https://creativecommons.org/licenses/by/4.0/) 貢獻";
 
+/* 轉址 */
+app.use((req, res, next) => {
+  if (req.headers.host === 'ckclubrollcall.onrender.com') {
+    return res.redirect(301, `https://your-domain.cksc.tw${req.originalUrl}`);
+  }
+  next();
+});
+
 // ==========================================
 // 0. 全域常數與系統設定
 // ==========================================
