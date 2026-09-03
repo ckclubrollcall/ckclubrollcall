@@ -760,57 +760,7 @@
 <!-- =================================================================== -->
 <div class="view-content active" id="view-simple">
 
-  <!-- 1. 系統基本運作流程 -->
-  <div class="card-box">
-    <span class="card-header-badge badge-primary">[流程] 系統基本運作邏輯</span>
-    <h2 class="card-title">整套系統是如何跑起來的？</h2>
-    <p class="card-desc">
-      系統核心目的，為將紙本點名過程，以電子化、自動化方式替代，減輕學務處社團活動組及社長的行政負擔。<br>
-      整套運作主要分為三個極簡步驟：
-    </p>
-
-    <div class="simple-flow">
-      <!-- 步驟 1 -->
-      <div class="flow-step-card step-1">
-        <div class="step-num-tag">步驟一</div>
-        <div class="step-heading">幹部用手機開啟網頁，填寫點名與手寫簽名</div>
-        <div class="step-detail-text">
-          社團幹部打開瀏覽器登入學校 Google 帳號後，系統會自動載入該社團最新社員名單。幹部勾選出席狀況，並請指導老師直接在手機螢幕上進行手寫數位簽名。
-        </div>
-      </div>
-
-      <!-- 步驟 2 -->
-      <div class="flow-step-card step-2">
-        <div class="step-num-tag">步驟二</div>
-        <div class="step-heading">Google 雲端（GAS）自動接單與安全核對</div>
-        <div class="step-detail-text">
-          按下「確認送出」後，資料會經由安全傳輸管道送往託管於 Google 的後台（Google Apps Script）。後台會自動進行安全防護檢查（如確認是否有漏填、是否有惡意字元、帳號冷卻時間等），確認無誤後將老師簽名妥善儲存至 Google 雲端硬碟。
-        </div>
-      </div>
-
-      <!-- 步驟 3 -->
-      <div class="flow-step-card step-3">
-        <div class="step-num-tag">步驟三</div>
-        <div class="step-heading">雲端試算表自動記帳，即時統計並產生報表</div>
-        <div class="step-detail-text">
-          資料寫入 Google 試算表後，公式自動計算當天全校缺席名冊、各社團出席率與老師到課統計；學務處或管理者亦可透過選單一鍵將所有簽名匯出成 Google Doc 文件。
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 2. 運作及維護方式 (預留空白區塊) -->
-  <div class="card-box">
-    <span class="card-header-badge badge-primary">[維護] 系統修復維護與建立工作小組</span>
-    <h2 class="card-title">系統出了問題如何處理？</h2>
-    <p class="card-desc">
-      為確保系統穩定運作，我們建立了工作小組：
-      工作小組脫離建中班聯會體系增加效率，老師可以隨時私訊成員回答問題，並由工作小組成員協助維護系統。
-      本小組每年將招募新學弟作為組員，避免畢業後難以維護的問題(詳細小組章程將於日後向老師說明)。
-    </p>
-  </div>
-
-  <!-- 3. 效益 (系統實施效益) -->
+    <!-- 3. 效益 (系統實施效益) -->
   <div class="card-box">
     <span class="card-header-badge badge-success">[效益] 系統實施效益</span>
     <h2 class="card-title">系統實施後帶來哪些效益？</h2>
@@ -853,6 +803,45 @@
           <h4>學生出缺席狀況確認</h4>
           <p><strong>傳統做法：</strong>學生不確定自己累積幾次出席/缺席，需特地詢問幹部或跑學務處查詢。</p>
           <p style="margin-top:8px; color: var(--blue); font-weight: 700;">➔ 改為：學生可以直接登入系統，隨時線上查看個人出缺席歷史紀錄。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. 系統基本運作流程 -->
+  <div class="card-box">
+    <span class="card-header-badge badge-primary">[流程] 系統基本運作邏輯</span>
+    <h2 class="card-title">整套系統是如何跑起來的？</h2>
+    <p class="card-desc">
+      系統核心目的，為將紙本點名過程，以電子化、自動化方式替代，減輕學務處社團活動組及社長的行政負擔。<br>
+      整套運作主要分為三個極簡步驟：
+    </p>
+
+    <div class="simple-flow">
+      <!-- 步驟 1 -->
+      <div class="flow-step-card step-1">
+        <div class="step-num-tag">步驟一</div>
+        <div class="step-heading">幹部用手機開啟網頁，填寫點名與手寫簽名</div>
+        <div class="step-detail-text">
+          社團幹部打開瀏覽器登入學校 Google 帳號後，系統會自動載入該社團最新社員名單。幹部勾選出席狀況，並請指導老師直接在手機螢幕上進行手寫數位簽名。
+        </div>
+      </div>
+
+      <!-- 步驟 2 -->
+      <div class="flow-step-card step-2">
+        <div class="step-num-tag">步驟二</div>
+        <div class="step-heading">Google 雲端（GAS）自動接單與安全核對</div>
+        <div class="step-detail-text">
+          按下「確認送出」後，資料會經由安全傳輸管道送往託管於 Google 的後台（Google Apps Script）。後台會自動進行安全防護檢查（如確認是否有漏填、是否有惡意字元、帳號冷卻時間等），確認無誤後將老師簽名妥善儲存至 Google 雲端硬碟。
+        </div>
+      </div>
+
+      <!-- 步驟 3 -->
+      <div class="flow-step-card step-3">
+        <div class="step-num-tag">步驟三</div>
+        <div class="step-heading">雲端試算表自動記帳，即時統計並產生報表</div>
+        <div class="step-detail-text">
+          資料寫入 Google 試算表後，公式自動計算當天全校缺席名冊、各社團出席率與老師到課統計；學務處或管理者亦可透過選單一鍵將所有簽名匯出成 Google Doc 文件。
         </div>
       </div>
     </div>
@@ -917,6 +906,17 @@
         </ul>
       </div>
     </div>
+  </div>
+
+    <!-- 2. 運作及維護方式 (預留空白區塊) -->
+  <div class="card-box">
+    <span class="card-header-badge badge-primary">[維護] 系統修復維護與建立工作小組</span>
+    <h2 class="card-title">系統出了問題如何處理？</h2>
+    <p class="card-desc">
+      為確保系統穩定運作，我們建立了工作小組：
+      老師可以隨時私訊成員回答問題，並由工作小組成員協助維護系統。
+      本小組每年將招募新學弟作為組員，避免畢業後難以維護的問題(詳細小組章程將於日後向老師說明)。
+    </p>
   </div>
 
   <!-- 下方轉換至詳細技術版按鈕 Banner -->
