@@ -1,0 +1,34 @@
+name: Deploy
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-${{ github.ref }}
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+      - name: Setup clasp credentials
+        working-directory: ./gas
+        run: |
+          echo '${{ secrets.CLASPRC_JSON }}' > ~/.clasprc.json
+          echo '${{ secrets.CLASP_JSON }}' > .clasp.json
+
+      - name: Push and deploy to GAS
+        working-directory: ./gas
+        env:
+          DEPLOY_DESC_INPUT: ${{ github.event.head_commit.message }}
+        run: |
+          DEPLOY_DESC=$(printf '%s' "$DEPLOY_DESC_INPUT" | tr '\n' ' ' | cut -c1-100)
+          npx @google/clasp push --force
+          npx @google/clasp deploy -i '${{ secrets.PROD_ID }}' -d "$DEPLOY_DESC"
