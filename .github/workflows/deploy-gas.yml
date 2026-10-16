@@ -27,7 +27,9 @@ jobs:
 
       - name: Push and deploy to GAS
         working-directory: ./gas
+        env:
+          DEPLOY_DESC_INPUT: ${{ github.event.head_commit.message }}
         run: |
-          DEPLOY_DESC=$(printf '%s' "${{ github.event.head_commit.message }}" | tr '\n' ' ' | cut -c1-100)
+          DEPLOY_DESC=$(printf '%s' "$DEPLOY_DESC_INPUT" | tr '\n' ' ' | cut -c1-100)
           npx @google/clasp push --force
           npx @google/clasp deploy -i '${{ secrets.PROD_ID }}' -d "$DEPLOY_DESC"
