@@ -18,7 +18,6 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "20"
-          cache: npm
       - name: Setup clasp credentials
         working-directory: ./gas
         run: |
