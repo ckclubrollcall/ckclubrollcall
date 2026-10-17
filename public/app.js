@@ -613,7 +613,6 @@ async function enterNewFormMode() {
     document.getElementById('subTeacher').value = '無';
 
     hasSigned = false;
-    window._keepOriginalSignature = false;
     if (canvas && ctx) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
@@ -784,7 +783,10 @@ async function submitForm() {
     // 防呆驗證：必須輸入社課大綱與老師簽名
     if (!desc) { await showAlert('錯誤: 請填寫社課內容簡述！'); return; }
     if (desc.length > MAX_DESC_LEN) { await showAlert(`錯誤: 社課內容不可超過 ${MAX_DESC_LEN} 字！`); return; }
-    if (!hasSigned) { await showAlert('錯誤: 請完成老師簽名！'); return; }
+    if (!hasSigned) {
+        await showAlert(window._editingDate ? '錯誤: 修改點名紀錄須請老師重新簽名！' : '錯誤: 請完成老師簽名！');
+        return;
+    }
 
     const subTeacherEl = document.getElementById('subTeacher');
     const subTeacherVal = subTeacherEl.value.trim() || '無';
@@ -823,8 +825,8 @@ async function submitForm() {
         subTeacher: subTeacherVal,
         presentCount: presentCount,
         absentList: absentList.length > 0 ? absentList.join('\n') : '全勤',
-        // 若使用原有簽名且沒重新簽名，標記為 KEEP
-        signature: window._keepOriginalSignature ? 'KEEP' : (hasSigned ? canvas.toDataURL('image/png') : '')
+        // 新增與修改皆須附上本次手寫的簽名（後端已不再接受沿用原簽名）
+        signature: canvas.toDataURL('image/png')
     };
 
     btn.disabled = true;
@@ -916,11 +918,12 @@ async function enterEditMode(record, skipPush) {
         checkIfFormChanged(); // 執行按鈕啟用狀態檢查
     });
 
+    // 修改紀錄一律須請老師重新簽名：清空簽名板，不沿用原有簽名
     initCanvas();
-    hasSigned = true;
-    window._keepOriginalSignature = true; // 標示為沿用原老師簽名
+    if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    hasSigned = false;
     const sigStatus = document.getElementById('sigStatus');
-    sigStatus.textContent = '已完成簽名（使用原有簽名）';
+    sigStatus.textContent = '修改紀錄須請老師重新簽名';
     sigStatus.style.display = 'block';
 
     // 重新綁定「確認修改」按鈕與下方「放棄修改」事件
@@ -959,8 +962,8 @@ function checkIfFormChanged() {
     });
     const currentAbsentList = absentList.length > 0 ? absentList.join('\n') : '全勤';
 
-    // 檢查老師簽名是否有重簽
-    const isSignatureChanged = !window._keepOriginalSignature;
+    // 檢查老師是否已重新簽名
+    const isSignatureChanged = hasSigned;
 
     // 任一欄位被動過，即代表已變更
     const hasChanged = 
@@ -1060,7 +1063,6 @@ function initCanvas() {
     // 手勢觸碰開始
     const start = (e) => {
         isDrawing = true;
-        window._keepOriginalSignature = false; // 有新簽名，不使用原簽名
         canvasRect = canvas.getBoundingClientRect();
         draw(e);
     };
@@ -1107,7 +1109,6 @@ function openSigModal() {
 function clearCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height); // 清空畫布內容
     hasSigned = false;
-    window._keepOriginalSignature = false;
     if (window._originalRecord) checkIfFormChanged();
 }
 
@@ -1116,10 +1117,17 @@ function clearCanvas() {
  */
 function closeSigModal() {
     document.getElementById('sigModal').classList.remove('open');
-    if (!window._keepOriginalSignature) {
-        document.getElementById('sigStatus').textContent = '已完成簽名';
+    const sigStatusEl = document.getElementById('sigStatus');
+    if (hasSigned) {
+        sigStatusEl.textContent = '已完成簽名';
+        sigStatusEl.style.display = 'block';
+    } else if (window._editingDate) {
+        sigStatusEl.textContent = '修改紀錄須請老師重新簽名';
+        sigStatusEl.style.display = 'block';
+    } else {
+        sigStatusEl.style.display = 'none';
     }
-    document.getElementById('sigStatus').style.display = hasSigned ? 'block' : 'none';
+    if (window._originalRecord) checkIfFormChanged();
     saveDraft(); // 順便將目前的簽名板資料暫存於草稿
 }
 

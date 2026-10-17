@@ -1238,7 +1238,7 @@
             <div class="step"><div class="step-content"><div class="step-title"><span class="fn-tag blue">submitForm()</span> 前端防呆檢查（5 道）</div><div class="step-detail">① 社課內容不可空白 ② 內容不可超過 200 字 ③ 老師必須已簽名 ④ 代課老師姓名不可超過 30 字 ⑤ 日期必須在允許範圍內<br><span class="file-location-tag loc-front">程式碼位置：前端網頁 (app.js)</span></div></div></div>
             <div class="step"><div class="step-content"><div class="step-title">組裝送出資料</div><div class="step-detail">收集所有 checkbox 的勾選狀態，將簽名轉成 Base64 PNG 圖片格式<br><span class="file-location-tag loc-front">程式碼位置：前端網頁 (app.js)</span></div></div></div>
             <div class="step"><div class="step-content"><div class="step-title"><span class="fn-tag blue">showSubmitOverlay()</span> 顯示傳送遮罩</div><div class="step-detail">鎖住整個畫面，避免使用者在傳送過程中誤觸操作<br><span class="file-location-tag loc-front">程式碼位置：前端網頁 (app.js)</span></div></div></div>
-            <div class="step"><div class="step-content"><div class="step-title">後台 <span class="fn-tag green">submitAttendance(data)</span></div><div class="step-detail">① 驗證 email、日期格式 ② 60 秒冷卻防重複提交 ③ <span class="fn-tag green">sanitize()</span> 過濾所有文字與轉義公式 ④ 將簽名 PNG 上傳至 Google Drive ⑤ <span class="fn-tag purple">sheet.appendRow()</span> 寫入一筆新紀錄至試算表<br><span class="file-location-tag loc-gas">程式碼位置：Google 試算表 GAS 後台 (form.js)</span></div></div></div>
+            <div class="step"><div class="step-content"><div class="step-title">後台 <span class="fn-tag green">submitAttendance(data)</span></div><div class="step-detail">① 驗證 email、日期格式 ② 60 秒冷卻防重複提交 ③ <span class="fn-tag green">sanitize()</span> 過濾所有文字與轉義公式 ④ 將簽名 PNG 上傳至 Google Drive ⑤ 寫入一筆新紀錄至試算表（L 欄紀錄類別「新增 / 編輯」、M 欄儲存格內簽名圖片）<br><span class="file-location-tag loc-gas">程式碼位置：Google 試算表 GAS 後台 (form.js)</span></div></div></div>
             <div class="step"><div class="step-content"><div class="step-title">送出成功！</div><div class="step-detail">彈出「送出成功」提示 ➔ 清除草稿 ➔ 自動跳轉至查詢紀錄頁<br><span class="file-location-tag loc-front">程式碼位置：前端網頁 (app.js)</span></div></div></div>
           </div>
         </div>
@@ -1347,7 +1347,7 @@
             <div class="step"><div class="step-content"><div class="step-title"><span class="fn-tag blue">enterEditMode(record)</span> 切換至編輯表單</div><div class="step-detail">清除現有草稿，將日期欄位鎖定（不可修改日期）<br><span class="file-location-tag loc-front">程式碼位置：前端網頁 (app.js)</span></div></div></div>
             <div class="step"><div class="step-content"><div class="step-title">預填原有資料</div><div class="step-detail">社課內容、老師出席、代課老師全部還原成上次送出的樣子<br><span class="file-location-tag loc-front">程式碼位置：前端網頁 (app.js)</span></div></div></div>
             <div class="step"><div class="step-content"><div class="step-title">還原學生勾選狀態</div><div class="step-detail"><span class="fn-tag blue">loadStudents()</span> 載入名單後，根據原始缺席名單反推出每位學生的打勾狀態<br><span class="file-location-tag loc-front">程式碼位置：前端網頁 (app.js)</span></div></div></div>
-            <div class="step"><div class="step-content"><div class="step-title">簽名沿用原始簽名</div><div class="step-detail">預設使用原有的老師簽名（不需重簽），若重新簽名則覆蓋<br><span class="file-location-tag loc-front">程式碼位置：前端網頁 (app.js)</span></div></div></div>
+            <div class="step"><div class="step-content"><div class="step-title">老師必須重新簽名</div><div class="step-detail">修改紀錄時清空簽名板，須由老師重新手寫簽名才能送出；後端同步拒絕未附新簽名的修改，並於「點名紀錄」L 欄標記「編輯」<br><span class="file-location-tag loc-front">程式碼位置：前端網頁 (app.js)</span></div></div></div>
           </div>
         </div>
       </div>
@@ -1378,8 +1378,8 @@
         </div>
         <div class="node-children">
           <div class="step-list">
-            <div class="step"><div class="step-content"><div class="step-title"><span class="fn-tag blue">submitForm()</span> 同點名送出流程</div><div class="step-detail">前端 5 道防呆 ➔ 組裝資料（signature 帶 'KEEP' 表示沿用原簽名）<br><span class="file-location-tag loc-front">程式碼位置：前端網頁 (app.js)</span></div></div></div>
-            <div class="step"><div class="step-content"><div class="step-title">後台 <span class="fn-tag green">submitAttendance()</span></div><div class="step-detail">收到 'KEEP' 時自動找回原簽名的 Drive URL；<strong>不會覆蓋舊紀錄</strong>，而是新增一列，系統會自動取最新的一筆<br><span class="file-location-tag loc-gas">程式碼位置：Google 試算表 GAS 後台 (form.js)</span></div></div></div>
+            <div class="step"><div class="step-content"><div class="step-title"><span class="fn-tag blue">submitForm()</span> 同點名送出流程</div><div class="step-detail">前端 5 道防呆 ➔ 組裝資料（signature 必須為老師本次重新手寫的 PNG）<br><span class="file-location-tag loc-front">程式碼位置：前端網頁 (app.js)</span></div></div></div>
+            <div class="step"><div class="step-content"><div class="step-title">後台 <span class="fn-tag green">submitAttendance()</span></div><div class="step-detail">未附新簽名一律拒絕，並將此筆標記為「編輯」；<strong>不會覆蓋舊紀錄</strong>，而是新增一列，系統會自動取最新的一筆<br><span class="file-location-tag loc-gas">程式碼位置：Google 試算表 GAS 後台 (form.js)</span></div></div></div>
             <div class="step"><div class="step-content"><div class="step-title">修改成功 ➔ 返回紀錄列表</div><div class="step-detail">清除草稿，自動跳回查詢紀錄頁面<br><span class="file-location-tag loc-front">程式碼位置：前端網頁 (app.js)</span></div></div></div>
           </div>
         </div>

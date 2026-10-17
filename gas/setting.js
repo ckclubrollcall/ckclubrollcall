@@ -4,6 +4,7 @@ function onOpen() {
 
   ui.createMenu('簽名報表')
     .addItem('產出指定日期簽名報表 (Google 文件)', 'renderClubReportDoc')
+    .addItem('補齊點名紀錄簽名圖片與紀錄類別（舊資料）', 'backfillRecordSignatureImages')
     .addToUi();
 
   ui.createMenu('刪除資料')

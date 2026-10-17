@@ -21,11 +21,14 @@ function renderClubReportDoc() {
     
     // 2. 讀取統計總表建立社團對照字典 (社團名稱 -> 社團編號 & 指導老師)
     var summaryData = summarySheet.getDataRange().getValues();
+    // 依標題列定位欄位，「統計總表」日後新增欄位（如最新簽名圖片、最後修改日期）時不會錯位；
+    // 找不到對應標題時退回原本的固定位置（A、B、H 欄）以維持相容。
+    var summaryCols = resolveSummaryColumns(summaryData[0] || []);
     var clubMap = {}; 
     for (var i = 1; i < summaryData.length; i++) {
-      var clubId = summaryData[i][0];
-      var clubName = summaryData[i][1];
-      var teacherName = summaryData[i][7] || '未填寫'; 
+      var clubId = summaryData[i][summaryCols.clubId];
+      var clubName = summaryData[i][summaryCols.clubName];
+      var teacherName = summaryData[i][summaryCols.teacher] || '未填寫';
       if (clubName) {
         clubMap[clubName] = { id: clubId, teacher: teacherName };
       }
@@ -68,8 +71,8 @@ function renderClubReportDoc() {
     
     // 依社團編號排序
     clubsFound.sort(function(a, b) {
-      var idA = clubMap[a] ? clubMap[a].id : '';
-      var idB = clubMap[b] ? clubMap[b].id : '';
+      var idA = clubMap[a] ? String(clubMap[a].id) : '';
+      var idB = clubMap[b] ? String(clubMap[b].id) : '';
       return idA.localeCompare(idB);
     });
     
@@ -111,7 +114,7 @@ function renderClubReportDoc() {
       var info = clubMap[clubName] || { id: '-(未對應)-', teacher: '-(未對應)-' };
       
       var row = table.appendTableRow();
-      row.appendTableCell(info.id).setBold(true).getChild(0).asParagraph().setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+      row.appendTableCell(String(info.id)).setBold(true).getChild(0).asParagraph().setAlignment(DocumentApp.HorizontalAlignment.CENTER);
       row.appendTableCell(clubName);
       row.appendTableCell(info.teacher);
       
@@ -150,6 +153,28 @@ function renderClubReportDoc() {
     ).setWidth(360).setHeight(180);
     SpreadsheetApp.getUi().showModalDialog(htmlOutput, '處理完成');
   }
+}
+
+/**
+ * 輔助工具：依「統計總表」標題列找出社團編號、社團名稱、指導老師姓名所在欄位（0-based）
+ * - 指導老師欄需排除含「簽名」「日期」字樣的欄位，避免誤抓到新增的「最新簽名圖片」等欄
+ * - 找不到時沿用舊版固定位置：A=社團編號、B=社團名稱、H=指導老師
+ */
+function resolveSummaryColumns(headerRow) {
+  var cols = { clubId: 0, clubName: 1, teacher: 7 };
+  var found = { clubId: false, clubName: false, teacher: false };
+  for (var c = 0; c < headerRow.length; c++) {
+    var h = String(headerRow[c] || '').replace(/\s+/g, '');
+    if (!h) continue;
+    if (!found.clubId && h.indexOf('社團編號') !== -1) { cols.clubId = c; found.clubId = true; continue; }
+    if (!found.clubName && h.indexOf('社團名稱') !== -1) { cols.clubName = c; found.clubName = true; continue; }
+    if (!found.teacher && h.indexOf('指導老師') !== -1 &&
+        h.indexOf('簽名') === -1 && h.indexOf('日期') === -1 &&
+        h.indexOf('出席') === -1 && h.indexOf('請假') === -1) {
+      cols.teacher = c; found.teacher = true;
+    }
+  }
+  return cols;
 }
 
 /**

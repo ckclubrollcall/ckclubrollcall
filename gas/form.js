@@ -8,7 +8,21 @@ var SECURITY = {
   MAX_EMAIL_LEN: 100,   // 電子郵件最大字數
   SUBMIT_COOLDOWN_SEC: 60,   // 同一帳號兩次提交的最短間隔時間（防重複發送，單位：秒）
   ALLOWED_DATE_RANGE: 5,    // 允許點名補填或修改的天數範圍（往回算 5 天內）
+  MAX_SIGNATURE_LEN: 200000, // 簽名 Data URL 最大字元數
+  MAX_SIGNATURE_SIDE: 3000,  // 簽名圖片單邊最大像素
+  MAX_SIGNATURE_PIXELS: 4000000, // 簽名圖片最大總像素（避免超出試算表儲存格圖片限制）
 };
+
+// ==========================================
+// 「點名紀錄」工作表欄位配置（1-based）
+// A~K 為既有欄位，L、M 為本次新增，一律附加在最後以維持既有公式與索引相容。
+// ==========================================
+var RECORD_COL = {
+  SIGNATURE_URL: 11, // K: 簽名檔 Drive 網址（保留，供報表/查詢面板沿用）
+  RECORD_TYPE: 12,   // L: 紀錄類別（新增 / 編輯）
+  SIGNATURE_IMG: 13  // M: 簽名圖片（儲存格內圖片）
+};
+var RECORD_TYPE = { CREATE: "新增", EDIT: "編輯" };
 
 // ==========================================
 // 1. 基本安全與防錯工具 (Validation & Sanitization)
@@ -490,7 +504,8 @@ function getLatestRowsByClub(club) {
         subTeacher: data[i][7],
         presentCount: data[i][8],
         absentList: data[i][9],
-        signatureUrl: data[i][10]
+        signatureUrl: data[i][10],
+        recordType: data[i][11] ? String(data[i][11]) : ""
       };
     }
   }
@@ -699,47 +714,37 @@ function submitAttendance(data) {
       : "全勤";
     var safePresentCount = members.length - absentIdentities.length;
 
-    var signatureData = "";
-    if (data.signature === 'KEEP') {
-      // 沿用原有簽名：從最新的一筆歷史紀錄拿回原本的雲端連結
-      var existing = getLatestRowsByClub(safeClub);
-      var existingRow = existing[data.date];
-      signatureData = existingRow ? existingRow.signatureUrl : '無簽名';
-    } else {
-      if (data.signature && data.signature.length > 200000) {
-        return { status: "error", message: "簽名檔過大，請重新簽名" };
-      }
-      if (data.signature && data.signature !== "") {
-        if (!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(data.signature)) {
-          return { status: "error", message: "簽名格式不正確" };
-        }
-        signatureData = data.signature;
-      }
+    // 9. 老師簽名驗證：新增與編輯一律必須附上「本次重新手寫」的簽名。
+    // 已移除舊版的 'KEEP'（沿用原簽名）機制，任何非 PNG Data URL 的值都會被拒絕，
+    // 因此無法透過竄改前端請求跳過重新簽名。
+    var sigCheck = validateSignatureDataUrl(data.signature);
+    if (!sigCheck.ok) {
+      return { status: "error", message: sigCheck.message };
     }
+
+    // 10. 由後端依既有資料判斷紀錄類別，不採信前端傳入的任何「是否為編輯」旗標。
+    var existingRows = getLatestRowsByClub(safeClub);
+    var recordType = existingRows[data.date] ? RECORD_TYPE.EDIT : RECORD_TYPE.CREATE;
 
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getSheetByName("點名紀錄");
+    ensureRecordSheetHeaders(sheet);
     var formattedDate = new Date(data.date.replace(/-/g, "/"));
 
-    // 老師手寫簽名上傳處理
-    var fileUrl = "無簽名";
-    if (signatureData === '無簽名' || signatureData === '') {
-      fileUrl = "無簽名";
-    } else if (signatureData.startsWith('https://')) {
-      fileUrl = signatureData; // 沿用原本的連結
-    } else {
-      // 將 Base64 格式轉回 PNG 圖檔，並寫入指定 Google Drive 資料夾
-      var folderId = getSignFolderId();
-      var folder = DriveApp.getFolderById(folderId);
-      var base64 = signatureData.split(",")[1];
-      var fileName = data.date + "_" + safeClub + "_老師簽名.png";
-      var blob = Utilities.newBlob(Utilities.base64Decode(base64), "image/png", fileName);
-      var file = folder.createFile(blob);
-      fileUrl = file.getUrl(); // 取得檔案的公開/內部連結
+    // 11. 將 PNG 存入指定 Google Drive 資料夾（檔案維持預設權限，不另外公開分享）
+    var folderId = getSignFolderId();
+    if (!folderId) {
+      return { status: "error", message: "系統尚未設定簽名存檔資料夾" };
     }
+    var folder = DriveApp.getFolderById(folderId);
+    var fileName = data.date + "_" + safeClub + "_" + recordType + "_老師簽名.png";
+    var blob = Utilities.newBlob(sigCheck.bytes, "image/png", fileName);
+    var file = folder.createFile(blob);
+    var fileUrl = file.getUrl();
 
-    // 附加新列至點名紀錄試算表
-    sheet.appendRow([
+    // 12. 寫入新列（A~L 為純文字/數值，M 為儲存格內圖片）
+    var newRow = sheet.getLastRow() + 1;
+    sheet.getRange(newRow, 1, 1, RECORD_COL.RECORD_TYPE).setValues([[
       new Date(),            // A: 填寫日期時間
       safeFillerInfo,        // B: 填答人學號資訊
       safeClub,              // C: 社團官方名稱
@@ -750,14 +755,196 @@ function submitAttendance(data) {
       safeSubTeacher,        // H: 代課老師姓名
       safePresentCount,      // I: 出席總人數
       safeAbsentList,        // J: 換行缺席名單
-      fileUrl                // K: 簽名檔 Drive 網址
-    ]);
+      fileUrl,               // K: 簽名檔 Drive 網址
+      recordType             // L: 紀錄類別（新增 / 編輯）
+    ]]);
+
+    // M: 簽名圖片。直接使用已驗證的 PNG 位元組重新編碼成 Data URL，
+    // 不需把 Drive 檔案設為「知道連結的任何人」即可在儲存格內顯示。
+    try {
+      var cellImage = buildSignatureCellImage(
+        sigCheck.bytes,
+        data.date + " " + safeClub + " 老師簽名（" + recordType + "）"
+      );
+      sheet.getRange(newRow, RECORD_COL.SIGNATURE_IMG).setValue(cellImage);
+      sheet.setRowHeight(newRow, 60);
+    } catch (imgErr) {
+      // 圖片插入失敗不影響點名資料（K 欄仍保有 Drive 連結），僅記錄日誌供管理者補齊。
+      logToSheet("簽名圖片插入失敗（第 " + newRow + " 列）: " + imgErr);
+    }
 
     return "SUCCESS";
   } finally {
     lock.releaseLock();
   }
   }
+
+// ==========================================
+// 5-1. 簽名圖片與「點名紀錄」欄位輔助工具
+// ==========================================
+
+/**
+ * 嚴格驗證前端傳入的簽名 Data URL。
+ * 1. 必須為 data:image/png;base64, 開頭且只含合法 Base64 字元
+ * 2. 限制長度，避免過大資料塞爆 Drive / 試算表
+ * 3. 解碼後檢查 PNG 檔頭（magic bytes）與 IHDR 寬高，確保真的是合理尺寸的 PNG
+ * 回傳 { ok: true, bytes } 或 { ok: false, message }
+ */
+function validateSignatureDataUrl(sig) {
+  if (!sig || typeof sig !== "string") {
+    return { ok: false, message: "請老師重新簽名後再送出" };
+  }
+  if (sig.length > SECURITY.MAX_SIGNATURE_LEN) {
+    return { ok: false, message: "簽名檔過大，請重新簽名" };
+  }
+  var m = /^data:image\/png;base64,([A-Za-z0-9+/]+={0,2})$/.exec(sig);
+  if (!m) {
+    return { ok: false, message: "簽名格式不正確，請重新簽名" };
+  }
+
+  var bytes;
+  try {
+    bytes = Utilities.base64Decode(m[1]);
+  } catch (e) {
+    return { ok: false, message: "簽名格式不正確，請重新簽名" };
+  }
+
+  // PNG 檔頭：89 50 4E 47 0D 0A 1A 0A，接著第一個 chunk 必須是 IHDR
+  var PNG_SIG = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+  if (!bytes || bytes.length < 33) {
+    return { ok: false, message: "簽名格式不正確，請重新簽名" };
+  }
+  var u = function (i) { return bytes[i] & 0xFF; };
+  for (var i = 0; i < PNG_SIG.length; i++) {
+    if (u(i) !== PNG_SIG[i]) return { ok: false, message: "簽名格式不正確，請重新簽名" };
+  }
+  if (String.fromCharCode(u(12), u(13), u(14), u(15)) !== "IHDR") {
+    return { ok: false, message: "簽名格式不正確，請重新簽名" };
+  }
+  var width = ((u(16) << 24) >>> 0) + (u(17) << 16) + (u(18) << 8) + u(19);
+  var height = ((u(20) << 24) >>> 0) + (u(21) << 16) + (u(22) << 8) + u(23);
+  if (width < 1 || height < 1 ||
+      width > SECURITY.MAX_SIGNATURE_SIDE || height > SECURITY.MAX_SIGNATURE_SIDE ||
+      width * height > SECURITY.MAX_SIGNATURE_PIXELS) {
+    return { ok: false, message: "簽名圖片尺寸異常，請重新簽名" };
+  }
+
+  return { ok: true, bytes: bytes };
+}
+
+/**
+ * 以 PNG 位元組建立「儲存格內圖片」(CellImage)。
+ * 一律由伺服器端重新 Base64 編碼，不直接拼接使用者輸入字串。
+ */
+function buildSignatureCellImage(bytes, altTitle) {
+  var dataUrl = "data:image/png;base64," + Utilities.base64Encode(bytes);
+  return SpreadsheetApp.newCellImage()
+    .setSourceUrl(dataUrl)
+    .setAltTextTitle(String(altTitle || "老師簽名").slice(0, 100))
+    .build();
+}
+
+/**
+ * 確保「點名紀錄」L、M 欄有標題；僅在儲存格為空白時寫入，不覆蓋既有內容。
+ */
+function ensureRecordSheetHeaders(sheet) {
+  var header = sheet.getRange(1, RECORD_COL.RECORD_TYPE, 1, 2).getValues()[0];
+  if (header[0] === "" || header[0] === null) {
+    sheet.getRange(1, RECORD_COL.RECORD_TYPE).setValue("紀錄類別");
+  }
+  if (header[1] === "" || header[1] === null) {
+    sheet.getRange(1, RECORD_COL.SIGNATURE_IMG).setValue("簽名圖片");
+    sheet.setColumnWidth(RECORD_COL.SIGNATURE_IMG, 160);
+  }
+}
+
+/**
+ * 從 Google Drive 檔案網址中嚴格擷取檔案 ID（僅接受 /d/{id} 或 ?id={id} 格式）
+ */
+function extractDriveFileId(url) {
+  if (!url) return null;
+  var s = String(url).trim();
+  if (!/^https:\/\/(drive|docs)\.google\.com\//i.test(s)) return null;
+  var m = s.match(/\/d\/([-\w]{20,})/) || s.match(/[?&]id=([-\w]{20,})/);
+  return m ? m[1] : null;
+}
+
+/**
+ * 【管理者選單】將舊資料（K 欄只有 Drive 連結、M 欄空白）補上儲存格內簽名圖片。
+ * - 只處理位於「系統設定」B1 簽名資料夾內、且為 PNG 的檔案，避免插入任意檔案
+ * - 舊資料的「紀錄類別」若空白，依同社團同日期的提交先後補上「新增 / 編輯」
+ * - 每次最多處理 150 列，避免超過 Apps Script 執行時間上限，可重複執行
+ */
+function backfillRecordSignatureImages() {
+  var ui = SpreadsheetApp.getUi();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("點名紀錄");
+  ensureRecordSheetHeaders(sheet);
+
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) { ui.alert("ℹ️ 目前沒有點名紀錄。"); return; }
+
+  var folderId = getSignFolderId();
+  if (!folderId) return;
+
+  var values = sheet.getRange(2, 1, lastRow - 1, RECORD_COL.SIGNATURE_IMG).getValues();
+
+  // 依填寫時間排序判斷舊資料的紀錄類別
+  var order = values.map(function (r, i) { return { i: i, ts: r[0] instanceof Date ? r[0].getTime() : 0 }; });
+  order.sort(function (a, b) { return a.ts - b.ts || a.i - b.i; });
+  var seenKey = {};
+  var typeFixes = 0;
+  var typeColumn = values.map(function (r) { return [r[RECORD_COL.RECORD_TYPE - 1]]; });
+  order.forEach(function (o) {
+    var r = values[o.i];
+    if (!(r[3] instanceof Date)) return;
+    var key = String(r[2]) + "|" + formatDateLocal(r[3]);
+    var inferred = seenKey[key] ? RECORD_TYPE.EDIT : RECORD_TYPE.CREATE;
+    seenKey[key] = true;
+    if (typeColumn[o.i][0] === "" || typeColumn[o.i][0] === null) {
+      typeColumn[o.i][0] = inferred;
+      typeFixes++;
+    }
+  });
+  if (typeFixes > 0) {
+    // 一次批次寫回，避免逐格寫入過慢
+    sheet.getRange(2, RECORD_COL.RECORD_TYPE, typeColumn.length, 1).setValues(typeColumn);
+  }
+
+  var done = 0, skipped = 0, remaining = 0, LIMIT = 150;
+  for (var i = 0; i < values.length; i++) {
+    var imgCell = values[i][RECORD_COL.SIGNATURE_IMG - 1];
+    if (imgCell !== "" && imgCell !== null) continue; // 已有圖片或內容
+    var fileId = extractDriveFileId(values[i][RECORD_COL.SIGNATURE_URL - 1]);
+    if (!fileId) continue;
+    if (done >= LIMIT) { remaining++; continue; }
+
+    try {
+      var file = DriveApp.getFileById(fileId);
+      var inFolder = false;
+      var parents = file.getParents();
+      while (parents.hasNext()) {
+        if (parents.next().getId() === folderId) { inFolder = true; break; }
+      }
+      if (!inFolder || file.getMimeType() !== "image/png" || file.getSize() > SECURITY.MAX_SIGNATURE_LEN) {
+        skipped++;
+        continue;
+      }
+      var check = validateSignatureDataUrl("data:image/png;base64," + Utilities.base64Encode(file.getBlob().getBytes()));
+      if (!check.ok) { skipped++; continue; }
+      var img = buildSignatureCellImage(check.bytes, "老師簽名");
+      sheet.getRange(i + 2, RECORD_COL.SIGNATURE_IMG).setValue(img);
+      sheet.setRowHeight(i + 2, 60);
+      done++;
+    } catch (e) {
+      skipped++;
+      logToSheet("補齊簽名圖片失敗（第 " + (i + 2) + " 列）: " + e);
+    }
+  }
+
+  ui.alert("✅ 補齊完成\n已補上簽名圖片：" + done + " 列\n已補上紀錄類別：" + typeFixes + " 列\n略過：" + skipped + " 列" +
+    (remaining ? "\n尚有 " + remaining + " 列未處理，請再執行一次。" : ""));
+}
 
 // ==========================================
 // 6. API 路由器 (doPost / doGet)
