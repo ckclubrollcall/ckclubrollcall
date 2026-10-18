@@ -18,6 +18,7 @@ function getReportFolderId() {
     var raw = ss.getSheetByName("系統設定").getRange("B2").getValue();
     return parseDriveId(raw);
   } catch (e) {
+    logToSheet("getReportFolderId 錯誤: " + e.toString());
     return null;
   }
 }

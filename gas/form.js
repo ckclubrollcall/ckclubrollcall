@@ -202,6 +202,7 @@ function verifyTestToken(token) {
     if (Date.now() > obj.exp) return null; // 憑證過期
     return obj; // 內含 email / club / clubId / name / remark
   } catch (e) {
+    logToSheet("verifyTestToken 錯誤: " + e.toString());
     return null;
   }
 }
@@ -275,6 +276,7 @@ function getSignFolderId() {
     return parseDriveId(raw);
   } catch (e) {
     SpreadsheetApp.getUi().alert("❌ 系統設定錯誤：" + e.message);
+    logToSheet("getSignFolderId 錯誤: " + e.toString());
     return null;
   }
 }
@@ -390,6 +392,7 @@ function verifyTestLogin(inputEmail, inputPassword, inputClub, inputIdentity) {
           }
         }
       } catch (err) {
+        logToSheet("verifyTestLogin 錯誤: " + err.toString());
         // 忽略錯誤，使用原本的輸入
       }
 
