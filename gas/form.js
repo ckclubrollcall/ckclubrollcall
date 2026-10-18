@@ -467,7 +467,9 @@ function formatDateLocal(date) {
  */
 function getLatestRowsByClub(club) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("點名紀錄");
-  var data = sheet.getDataRange().getValues();
+  var range = sheet.getDataRange();
+  var data = range.getValues();
+  var richTexts = range.getRichTextValues();
   var latest = {}; // 鍵值為 yyyy-MM-dd，數值為該日期最新的紀錄行
 
   for (var i = 1; i < data.length; i++) {
@@ -479,6 +481,10 @@ function getLatestRowsByClub(club) {
 
     // 若同一日期有重覆提交，只保留時間戳記最新的一筆
     if (!latest[key] || ts > latest[key]._ts) {
+      // 支援 Google Drive 檔案智慧方塊：先自 richText 提取 URL，無則使用儲存格值
+      var sigRichText = (richTexts && richTexts[i] && richTexts[i][10]) ? richTexts[i][10].getLinkUrl() : null;
+      var sigValue = sigRichText || (data[i][10] ? String(data[i][10]).trim() : "");
+
       latest[key] = {
         _ts: ts,
         date: key,
@@ -490,7 +496,8 @@ function getLatestRowsByClub(club) {
         subTeacher: data[i][7],
         presentCount: data[i][8],
         absentList: data[i][9],
-        signatureUrl: data[i][10]
+        signatureUrl: sigValue,
+        recordType: data[i][11] ? String(data[i][11]).trim() : "新增"
       };
     }
   }
@@ -699,49 +706,53 @@ function submitAttendance(data) {
       : "全勤";
     var safePresentCount = members.length - absentIdentities.length;
 
-    var signatureData = "";
+    // 9. 檢查既有紀錄以判定「紀錄類別」（新增 vs 編輯），防範前端偽造傳遞值
+    var existingRecords = getLatestRowsByClub(safeClub);
+    var isEdit = !!existingRecords[data.date];
+    var recordType = isEdit ? "編輯" : "新增";
+
+    // 10. 驗證簽名：徹底廢止 KEEP 邏輯，修改點名紀錄者必須重新簽名
     if (data.signature === 'KEEP') {
-      // 沿用原有簽名：從最新的一筆歷史紀錄拿回原本的雲端連結
-      var existing = getLatestRowsByClub(safeClub);
-      var existingRow = existing[data.date];
-      signatureData = existingRow ? existingRow.signatureUrl : '無簽名';
-    } else {
-      if (data.signature && data.signature.length > 200000) {
-        return { status: "error", message: "簽名檔過大，請重新簽名" };
-      }
-      if (data.signature && data.signature !== "") {
-        if (!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(data.signature)) {
-          return { status: "error", message: "簽名格式不正確" };
-        }
-        signatureData = data.signature;
-      }
+      return { status: "error", message: "修改點名紀錄必須重新簽名，不可沿用原簽名" };
+    }
+
+    if (!data.signature || data.signature === "") {
+      return { status: "error", message: isEdit ? "修改者必須完成簽名" : "指導老師必須完成簽名" };
+    }
+
+    if (data.signature.length > 200000) {
+      return { status: "error", message: "簽名檔過大，請重新簽名" };
+    }
+
+    if (!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(data.signature)) {
+      return { status: "error", message: "簽名格式不正確" };
     }
 
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getSheetByName("點名紀錄");
     var formattedDate = new Date(data.date.replace(/-/g, "/"));
 
-    // 老師手寫簽名上傳處理
-    var fileUrl = "無簽名";
-    if (signatureData === '無簽名' || signatureData === '') {
-      fileUrl = "無簽名";
-    } else if (signatureData.startsWith('https://')) {
-      fileUrl = signatureData; // 沿用原本的連結
-    } else {
-      // 將 Base64 格式轉回 PNG 圖檔，並寫入指定 Google Drive 資料夾
-      var folderId = getSignFolderId();
-      var folder = DriveApp.getFolderById(folderId);
-      var base64 = signatureData.split(",")[1];
-      var fileName = data.date + "_" + safeClub + "_老師簽名.png";
-      var blob = Utilities.newBlob(Utilities.base64Decode(base64), "image/png", fileName);
-      var file = folder.createFile(blob);
-      fileUrl = file.getUrl(); // 取得檔案的公開/內部連結
+    // 11. 將 Base64 格式轉回 PNG 圖檔，並依類別命名後寫入指定 Google Drive 資料夾
+    var folderId = getSignFolderId();
+    var folder = DriveApp.getFolderById(folderId);
+    var base64 = data.signature.split(",")[1];
+    var fileName = data.date + "_" + safeClub + (isEdit ? "_修改者簽名.png" : "_老師簽名.png");
+    var blob = Utilities.newBlob(Utilities.base64Decode(base64), "image/png", fileName);
+    var file = folder.createFile(blob);
+    var fileUrl = file.getUrl(); // 取得檔案的公開/內部連結
+
+    // 確保點名紀錄標題列包含第 L 欄「紀錄類別」
+    if (sheet.getLastRow() >= 1) {
+      var headerL = sheet.getRange(1, 12).getValue();
+      if (!headerL) {
+        sheet.getRange(1, 12).setValue("紀錄類別");
+      }
     }
 
     // 附加新列至點名紀錄試算表
     sheet.appendRow([
       new Date(),            // A: 填寫日期時間
-      safeFillerInfo,        // B: 填答人學號資訊
+      safeFillerInfo,        // B: 填答人身分類別
       safeClub,              // C: 社團官方名稱
       formattedDate,         // D: 點名社課日期
       safeFillerName,        // E: 填寫人姓名
@@ -750,8 +761,52 @@ function submitAttendance(data) {
       safeSubTeacher,        // H: 代課老師姓名
       safePresentCount,      // I: 出席總人數
       safeAbsentList,        // J: 換行缺席名單
-      fileUrl                // K: 簽名檔 Drive 網址
+      fileUrl,               // K: 老師簽名 / 修改者簽名 (將嘗試轉換為 Google Drive 智慧方塊)
+      recordType             // L: 紀錄類別 (新增 / 編輯)
     ]);
+
+    var lastRow = sheet.getLastRow();
+
+    // 12. 優先使用 Google Sheets API (v4 batchUpdate chipRuns) 產生 Google Drive 檔案智慧方塊
+    try {
+      if (typeof Sheets !== "undefined" && Sheets.Spreadsheets && fileUrl) {
+        var spreadsheetId = ss.getId();
+        var sheetId = sheet.getSheetId();
+        var rowIndex = lastRow - 1; // 0-indexed
+        var colIndex = 10;          // K 欄為第 11 欄 -> 0-indexed 為 10
+
+        Sheets.Spreadsheets.batchUpdate({
+          requests: [{
+            updateCells: {
+              rows: [{
+                values: [{
+                  userEnteredValue: { stringValue: "@" },
+                  chipRuns: [{
+                    startIndex: 0,
+                    chip: {
+                      richLinkProperties: {
+                        uri: fileUrl
+                      }
+                    }
+                  }]
+                }]
+              }],
+              range: {
+                sheetId: sheetId,
+                startRowIndex: rowIndex,
+                endRowIndex: rowIndex + 1,
+                startColumnIndex: colIndex,
+                endColumnIndex: colIndex + 1
+              },
+              fields: "userEnteredValue,chipRuns"
+            }
+          }]
+        }, spreadsheetId);
+      }
+    } catch (chipError) {
+      logToSheet("Drive 檔案智慧方塊轉換失敗，已保留原始連結: " + chipError.toString());
+      // 若 Sheets API 發生錯誤或未啟用，已保留原先寫入之 fileUrl 作為安全降級
+    }
 
     return "SUCCESS";
   } finally {
