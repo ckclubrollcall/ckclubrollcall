@@ -35,6 +35,38 @@ function renderClubReportDoc() {
     var recordRange = recordSheet.getDataRange();
     var recordData = recordRange.getValues();
     var recordRichTexts = recordRange.getRichTextValues();
+    var numRows = recordData.length;
+
+    // 若啟用 Sheets API，批次讀取 K 欄之 chipRuns 以直接取得智慧方塊之原始 URI
+    var chipUrlMap = {};
+    try {
+      if (typeof Sheets !== "undefined" && Sheets.Spreadsheets && numRows > 1) {
+        var a1Range = "'點名紀錄'!K2:K" + numRows;
+        var response = Sheets.Spreadsheets.get(ss.getId(), {
+          ranges: [a1Range],
+          fields: "sheets(data(rowData(values(chipRuns))))"
+        });
+        if (response.sheets && response.sheets[0] && response.sheets[0].data && response.sheets[0].data[0].rowData) {
+          var rowsData = response.sheets[0].data[0].rowData;
+          for (var rIdx = 0; rIdx < rowsData.length; rIdx++) {
+            var rowItem = rowsData[rIdx];
+            if (rowItem && rowItem.values && rowItem.values[0] && rowItem.values[0].chipRuns) {
+              var chipRuns = rowItem.values[0].chipRuns;
+              for (var cIdx = 0; cIdx < chipRuns.length; cIdx++) {
+                var uri = chipRuns[cIdx].chip && chipRuns[cIdx].chip.richLinkProperties ? chipRuns[cIdx].chip.richLinkProperties.uri : null;
+                if (uri) {
+                  chipUrlMap[rIdx + 1] = uri; // 對應到 recordData 的 row index (j = rIdx + 1)
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (apiErr) {
+      logToSheet("讀取智慧方塊 API 失敗，將使用後備方式解析: " + apiErr.toString());
+    }
+
     var clubRecords = {};
 
     for (var j = 1; j < recordData.length; j++) {
@@ -43,9 +75,13 @@ function renderClubReportDoc() {
       var clubName = row[2];       // 社團名稱
       var rwdDateStr = row[3];     // 社課日期
 
-      // 支援 Google Drive 檔案智慧方塊：先自 richText 提取 URL，無則使用儲存格值
+      // 支援 Google Drive 檔案智慧方塊：
+      // 1. 優先取用 Sheets API chipRuns 解析出的 URI
+      // 2. 次之取用 RichText linkUrl
+      // 3. 若為檔案名稱文字，解析函式會自動透過 DriveApp/簽名資料夾依檔名找回檔案 ID
+      var sigChipUrl = chipUrlMap[j];
       var sigRichText = (recordRichTexts && recordRichTexts[j] && recordRichTexts[j][10]) ? recordRichTexts[j][10].getLinkUrl() : null;
-      var signatureRaw = sigRichText || row[10];
+      var signatureRaw = sigChipUrl || sigRichText || row[10];
       var recordType = row[11] ? String(row[11]).trim() : '';
 
       // 標準化日期格式進行比對
@@ -212,14 +248,55 @@ function formatDateTime(d) {
 }
 
 /**
- * 輔助工具：從簽名連結或 Google Drive URL 內擷取唯一的 25~50 碼檔案 ID
+ * 輔助工具：從簽名連結、Google Drive URL 或檔案名稱解析出 Google Drive File ID
  */
 function parseDriveId(input) {
   if (!input) return null;
   var str = String(input).trim();
-  if (str === '無' || str === '無簽名' || str === '（無簽名資料）') return null;
-  var match = str.match(/[-\w]{25,}(?!.*[-\w]{25,})/);
-  return match ? match[0] : (str.length >= 25 ? str : null);
+  if (str === '無' || str === '無簽名' || str === '（無簽名資料）' || str === '@') return null;
+
+  // 1. 若字串中包含 Google Drive 標準 25~50 碼 ID（如 URL 或純 ID）
+  // 排除副檔名結尾的檔名（例如 .png 檔名可能大於 25 字元，但不應直接當作 fileId）
+  if (!/\.png$/i.test(str)) {
+    var match = str.match(/[-\w]{25,}(?!.*[-\w]{25,})/);
+    if (match) return match[0];
+  }
+
+  // 2. 若為檔名（例如 2026-10-18_社團名_修改者簽名.png），優先至簽名資料夾搜尋，並取建立時間最晚（最新）的檔案
+  if (/\.png$/i.test(str)) {
+    try {
+      var folderId = getSignFolderId();
+      var files = null;
+      if (folderId) {
+        var folder = DriveApp.getFolderById(folderId);
+        files = folder.getFilesByName(str);
+      }
+      if (!files || !files.hasNext()) {
+        files = DriveApp.getFilesByName(str); // 資料夾內找不到時全域尋找
+      }
+
+      var latestFile = null;
+      var latestTime = 0;
+      while (files.hasNext()) {
+        var f = files.next();
+        var fTime = f.getDateCreated().getTime();
+        if (!latestFile || fTime > latestTime) {
+          latestFile = f;
+          latestTime = fTime;
+        }
+      }
+
+      if (latestFile) {
+        return latestFile.getId();
+      }
+    } catch (e) {
+      logToSheet("透過檔名尋找簽名 ID 失敗: " + e.toString());
+    }
+  }
+
+  // 3. 一般後備比對
+  var fallbackMatch = str.match(/[-\w]{25,}/);
+  return fallbackMatch ? fallbackMatch[0] : null;
 }
 
 /**
