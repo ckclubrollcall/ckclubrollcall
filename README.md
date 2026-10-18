@@ -60,13 +60,13 @@ link: https://rollcall.cksc.tw/
 1. 新增一份 Google 試算表。
 2. 建立以下工作表（工作表名稱須完全一致）：
    * `原始名單`：欄位包含 `班級`、`座號`、`姓名`、`學號`、`身分`、`社團編號`、`社團名稱`。
-   * `點名紀錄`：用於儲存前台送出的資料。
+   * `點名紀錄`：用於儲存前台送出的資料，欄位 A~L 分別為：`時間戳記`、`身分資料`、`社團名稱`、`社課日期`、`填寫人姓名`、`內容簡述`、`老師出席`、`代課老師`、`實到人數`、`缺席名單`、`老師/修改者簽名`、`紀錄類別`。
    * `系統設定`：在 `B2` 儲存簽名報表匯出的目標 Google Drive 資料夾 ID。
    * `原始社團`、`統計總表`、`當日缺曠`、`校內出席老師紀錄`、`校外出席老師紀錄`。
 
 ### 2. 部署 Google Apps Script
 1. 在試算表上方選單點選 **擴充功能** -> **Apps Script**。
-2. 將專案中的 `form.js`、`sign.js`、`club_search.js`、`setting.js`、`clear.js` 分別貼入 Apps Script 專案的對應 `.gs` 檔案中。
+2. 將專案中的 `form.js`、`sign.js`、`club_search.js`、`setting.js`、`clear.js` 分別貼入 Apps Script 專案的對應 `.gs` 檔案中，並於專案設定中啟用或同步 `appsscript.json`（包含 Google Sheets API v4 服務，以支援 Drive 智慧方塊原生產生）。
 3. 點選右上方 **部署** -> **新增部署**：
    * 類型選擇 **網頁應用程式 (Web App)**。
    * 執行身分選擇 **具有存取權的使用者 (User accessing the web app)**。
