@@ -76,14 +76,14 @@
       </div>
 
       <div class="form-group">
-        <label>老師簽名</label>
+        <label id="sigLabel">老師簽名</label>
         <button id="sigOpenBtn" type="button">點擊開啟簽名板</button>
         <div id="sigStatus">尚未簽名</div>
       </div>
 
       <div id="sigModal" class="modal-overlay">
         <div class="modal-content">
-          <h3>老師請在此簽名</h3>
+          <h3 id="sigModalTitle">老師請在此簽名</h3>
           <canvas id="sigCanvas"></canvas>
           <div class="btn-group">
             <button class="btn btn-red" id="sigClearBtn" type="button">清除重簽</button>
