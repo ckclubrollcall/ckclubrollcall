@@ -1378,8 +1378,8 @@
         </div>
         <div class="node-children">
           <div class="step-list">
-            <div class="step"><div class="step-content"><div class="step-title"><span class="fn-tag blue">submitForm()</span> 同點名送出流程</div><div class="step-detail">前端 5 道防呆 ➔ 組裝資料（signature 帶 'KEEP' 表示沿用原簽名）<br><span class="file-location-tag loc-front">程式碼位置：前端網頁 (app.js)</span></div></div></div>
-            <div class="step"><div class="step-content"><div class="step-title">後台 <span class="fn-tag green">submitAttendance()</span></div><div class="step-detail">收到 'KEEP' 時自動找回原簽名的 Drive URL；<strong>不會覆蓋舊紀錄</strong>，而是新增一列，系統會自動取最新的一筆<br><span class="file-location-tag loc-gas">程式碼位置：Google 試算表 GAS 後台 (form.js)</span></div></div></div>
+            <div class="step"><div class="step-content"><div class="step-title"><span class="fn-tag blue">submitForm()</span> 同點名送出流程</div><div class="step-detail">前端防呆 ➔ 修改點名紀錄者必須重新簽名<br><span class="file-location-tag loc-front">程式碼位置：前端網頁 (app.js)</span></div></div></div>
+            <div class="step"><div class="step-content"><div class="step-title">後台 <span class="fn-tag green">submitAttendance()</span></div><div class="step-detail">驗證修改者簽名並上傳 Drive，判定紀錄類別為「編輯」；以 Google Drive 智慧方塊寫入簽名，<strong>不會覆蓋舊紀錄</strong>而是新增一列，系統會自動取最新的一筆<br><span class="file-location-tag loc-gas">程式碼位置：Google 試算表 GAS 後台 (form.js)</span></div></div></div>
             <div class="step"><div class="step-content"><div class="step-title">修改成功 ➔ 返回紀錄列表</div><div class="step-detail">清除草稿，自動跳回查詢紀錄頁面<br><span class="file-location-tag loc-front">程式碼位置：前端網頁 (app.js)</span></div></div></div>
           </div>
         </div>
@@ -1512,10 +1512,10 @@
         <div class="node-children">
           <div class="step-list">
             <div class="step"><div class="step-content"><div class="step-title">① 「原始名單」是身分與社團主檔</div><div class="step-detail">系統登入、載入社員名單、社團對照，都是先讀這張表；主要欄位為班級、座號、姓名、學號、身分、社團編號、社團名稱。<br><span class="file-location-tag loc-sheet">位置：Google 試算表 ➔「原始名單」工作表</span></div></div></div>
-            <div class="step"><div class="step-content"><div class="step-title">② 「點名紀錄」是唯一正式交易表</div><div class="step-detail">前台送出點名後，<span class="fn-tag green">submitAttendance()</span> 會新增一列：時間戳記、填寫人、社團、社課日期、內容、老師出席、代課老師、實到、缺席名單、簽名網址。<br><span class="file-location-tag loc-sheet">位置：Google 試算表 ➔「點名紀錄」工作表</span></div></div></div>
+            <div class="step"><div class="step-content"><div class="step-title">② 「點名紀錄」是唯一正式交易表</div><div class="step-detail">前台送出點名後，<span class="fn-tag green">submitAttendance()</span> 會新增一列：時間戳記（A欄）、填寫人身分資料（B欄）、社團（C欄）、社課日期（D欄）、填寫人姓名（E欄）、內容（F欄）、老師出席（G欄）、代課老師（H欄）、實到（I欄）、缺席名單（J欄）、簽名智慧方塊（K欄）、紀錄類別（新增/編輯，L欄）。<br><span class="file-location-tag loc-sheet">位置：Google 試算表 ➔「點名紀錄」工作表</span></div></div></div>
             <div class="step"><div class="step-content"><div class="step-title">③ 公式層把原始資料整理成管理報表</div><div class="step-detail">「原始社團」、「統計總表」、「當日缺曠」、「校內/校外出席老師紀錄」會自動讀取底層資料，整理出社團清單、未繳交狀態、缺席名單與老師出席統計。<br><span class="file-location-tag loc-sheet">位置：Google 試算表 ➔ 各公式工作表</span></div></div></div>
             <div class="step"><div class="step-content"><div class="step-title">④ 「查詢面板」負責逐社團查看整學期</div><div class="step-detail">在工作表輸入社團名稱後，<span class="fn-tag green">onEdit()</span> 會直接畫出出缺席矩陣、缺席明細、社課內容摘要，適合平常查詢。<br><span class="file-location-tag loc-gas">位置：Google 試算表「查詢面板」 (club_search.js)</span></div></div></div>
-            <div class="step"><div class="step-content"><div class="step-title">⑤ 「簽名報表」再把結果輸出成 Google 文件</div><div class="step-detail"><span class="fn-tag green">renderClubReportDoc()</span> 會讀取「統計總表」與「點名紀錄」，將指定日期各社團簽名圖檔彙整成可列印的文件。<br><span class="file-location-tag loc-gas">位置：Google 試算表選單 (sign.js)</span></div></div></div>
+            <div class="step"><div class="step-content"><div class="step-title">⑤ 「簽名報表」再把結果輸出成 Google 文件</div><div class="step-detail"><span class="fn-tag green">renderClubReportDoc()</span> 會讀取「統計總表」與「點名紀錄」，輸出社團編號、社團名稱、指導老師、指導老師簽名、最後編輯時間、最後編輯者簽名至 Google 文件中。<br><span class="file-location-tag loc-gas">位置：Google 試算表選單 (sign.js)</span></div></div></div>
           </div>
         </div>
       </div>
