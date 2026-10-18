@@ -31,36 +31,42 @@ function renderClubReportDoc() {
       }
     }
     
-    // 3. 讀取點名紀錄，篩選出指定日期中「每個社團最新提交」的簽名與狀態
-    var recordData = recordSheet.getDataRange().getValues();
-    var latestRecords = {}; 
+    // 3. 讀取點名紀錄，篩選出指定日期中各社團的最初「新增」老師簽名與最新的「編輯」修改者紀錄
+    var recordRange = recordSheet.getDataRange();
+    var recordData = recordRange.getValues();
+    var recordRichTexts = recordRange.getRichTextValues();
+    var clubRecords = {}; 
     
     for (var j = 1; j < recordData.length; j++) {
       var row = recordData[j];
-      var timestampStr = row[0];   // 填寫時間
+      var timestampVal = row[0];   // 填寫時間
       var clubName = row[2];       // 社團名稱
       var rwdDateStr = row[3];     // 社課日期
-      var signatureRaw = row[10];  // 簽名連結
+      
+      // 支援 Google Drive 檔案智慧方塊：先自 richText 提取 URL，無則使用儲存格值
+      var sigRichText = (recordRichTexts && recordRichTexts[j] && recordRichTexts[j][10]) ? recordRichTexts[j][10].getLinkUrl() : null;
+      var signatureRaw = sigRichText || row[10];
+      var recordType = row[11] ? String(row[11]).trim() : '';
       
       // 標準化日期格式進行比對
       var recordDateFormatted = normalizeDate(rwdDateStr);
       var targetDateFormatted = normalizeDate(targetDate);
       
       if (recordDateFormatted === targetDateFormatted && clubName) {
-        var currentTimestamp = new Date(timestampStr);
-        
-        // 若該社團還沒有紀錄，或者這筆紀錄的時間戳記更晚，就覆蓋
-        if (!latestRecords[clubName] || currentTimestamp > latestRecords[clubName].timestamp) {
-          latestRecords[clubName] = {
-            timestamp: currentTimestamp,
-            signatureRaw: signatureRaw
-          };
+        var currentTimestamp = new Date(timestampVal);
+        if (!clubRecords[clubName]) {
+          clubRecords[clubName] = [];
         }
+        clubRecords[clubName].push({
+          timestamp: currentTimestamp,
+          signatureRaw: signatureRaw,
+          recordType: recordType
+        });
       }
     }
     
     // 4. 驗證該日期是否真的有點名資料
-    var clubsFound = Object.keys(latestRecords);
+    var clubsFound = Object.keys(clubRecords);
     if (clubsFound.length === 0) {
       ui.alert('ℹ️ 找不到該日期（' + targetDate + '）的任何點名紀錄！');
       return;
@@ -97,7 +103,7 @@ function renderClubReportDoc() {
     // 建立排版表格與標題列
     var table = body.appendTable();
     var headerRow = table.appendTableRow();
-    var headers = ['社團編號', '社團名稱', '指導老師姓名', '指導老師簽名'];
+    var headers = ['社團編號', '社團名稱', '指導老師姓名', '指導老師簽名', '最後編輯時間', '最後編輯者簽名'];
     
     headers.forEach(function(text) {
       var cell = headerRow.appendTableCell(text);
@@ -107,31 +113,47 @@ function renderClubReportDoc() {
     
     // 6. 逐列填入各社團資料並自雲端硬碟讀取簽名圖片插入表格中
     clubsFound.forEach(function(clubName) {
-      var record = latestRecords[clubName];
+      var rows = clubRecords[clubName];
+      // 依時間由舊到新排序
+      rows.sort(function(x, y) { return x.timestamp - y.timestamp; });
+      
+      // 最初的「新增」紀錄為老師簽名
+      var createRecord = rows.filter(function(r) { return r.recordType === '新增'; })[0] || rows[0];
+      // 「編輯」紀錄清單
+      var editRecords = rows.filter(function(r) { return r.recordType === '編輯'; });
+      // 若無標註 recordType 但有多筆提交，後續筆數視為編輯紀錄（向後相容）
+      if (editRecords.length === 0 && rows.length > 1) {
+        editRecords = rows.slice(1);
+      }
+      var latestEdit = editRecords.length > 0 ? editRecords[editRecords.length - 1] : null;
+      
       var info = clubMap[clubName] || { id: '-(未對應)-', teacher: '-(未對應)-' };
       
-      var row = table.appendTableRow();
-      row.appendTableCell(info.id).setBold(true).getChild(0).asParagraph().setAlignment(DocumentApp.HorizontalAlignment.CENTER);
-      row.appendTableCell(clubName);
-      row.appendTableCell(info.teacher);
+      var tableRow = table.appendTableRow();
+      tableRow.appendTableCell(info.id).setBold(true).getChild(0).asParagraph().setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+      tableRow.appendTableCell(clubName);
+      tableRow.appendTableCell(info.teacher);
       
-      var sigCell = row.appendTableCell();
-      var sigId = parseDriveId(record.signatureRaw); // 提取簽名檔案的 Google Drive ID
+      // 1. 指導老師簽名 (取自最初新增紀錄)
+      var teacherSigCell = tableRow.appendTableCell();
+      insertSigToTableCell(teacherSigCell, createRecord ? createRecord.signatureRaw : null, '（無簽名資料）');
       
-      if (sigId) {
-        try {
-          var imageBlob = DriveApp.getFileById(sigId).getBlob();
-          var inlineImg = sigCell.appendImage(imageBlob);
-          
-          // 限制圖片寬高，防止排版崩潰
-          inlineImg.setWidth(120);
-          inlineImg.setHeight(50);
-          sigCell.getChild(0).asParagraph().setAlignment(DocumentApp.HorizontalAlignment.CENTER);
-        } catch(e) {
-          sigCell.setText('⚠️ 無法載入圖檔\n(可能無權限或檔案已被刪除)');
-        }
+      // 2. 最後編輯時間 (若無編輯則顯示「無」)
+      var editTimeCell = tableRow.appendTableCell();
+      if (latestEdit && latestEdit.timestamp && !isNaN(latestEdit.timestamp.getTime())) {
+        editTimeCell.setText(formatDateTime(latestEdit.timestamp));
       } else {
-        sigCell.setText('（無簽名資料）');
+        editTimeCell.setText('無');
+      }
+      editTimeCell.getChild(0).asParagraph().setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+      
+      // 3. 最後編輯者簽名 (若有編輯則插入修改者簽名，若無則顯示「無」)
+      var editSigCell = tableRow.appendTableCell();
+      if (latestEdit) {
+        insertSigToTableCell(editSigCell, latestEdit.signatureRaw, '無');
+      } else {
+        editSigCell.setText('無');
+        editSigCell.getChild(0).asParagraph().setAlignment(DocumentApp.HorizontalAlignment.CENTER);
       }
     });
     
@@ -153,13 +175,50 @@ function renderClubReportDoc() {
 }
 
 /**
+ * 輔助工具：將簽名圖檔插入表格儲存格中
+ */
+function insertSigToTableCell(cell, sigRaw, defaultText) {
+  var sigId = parseDriveId(sigRaw);
+  if (sigId) {
+    try {
+      var imageBlob = DriveApp.getFileById(sigId).getBlob();
+      var inlineImg = cell.appendImage(imageBlob);
+      inlineImg.setWidth(120);
+      inlineImg.setHeight(50);
+      cell.getChild(0).asParagraph().setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+      return;
+    } catch (e) {
+      cell.setText('⚠️ 無法載入圖檔\n(可能無權限或檔案已被刪除)');
+      cell.getChild(0).asParagraph().setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+      return;
+    }
+  }
+  cell.setText(defaultText || '無');
+  cell.getChild(0).asParagraph().setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+}
+
+/**
+ * 輔助工具：將日期時間格式化為 yyyy/MM/dd HH:mm
+ */
+function formatDateTime(d) {
+  if (!d || isNaN(d.getTime())) return '無';
+  var y = d.getFullYear();
+  var m = d.getMonth() + 1;
+  var day = d.getDate();
+  var hh = d.getHours();
+  var mm = d.getMinutes();
+  return y + '/' + (m < 10 ? '0' : '') + m + '/' + (day < 10 ? '0' : '') + day + ' ' + (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm;
+}
+
+/**
  * 輔助工具：從簽名連結或 Google Drive URL 內擷取唯一的 25~50 碼檔案 ID
  */
 function parseDriveId(input) {
   if (!input) return null;
-  var str = String(input);
+  var str = String(input).trim();
+  if (str === '無' || str === '無簽名' || str === '（無簽名資料）') return null;
   var match = str.match(/[-\w]{25,}(?!.*[-\w]{25,})/);
-  return match ? match[0] : str;
+  return match ? match[0] : (str.length >= 25 ? str : null);
 }
 
 /**
