@@ -12,7 +12,7 @@ jobs:
     concurrency:
       group: deploy-${{ github.ref }}
       cancel-in-progress: false
-    
+
     defaults:
       run:
         working-directory: ./gas
@@ -23,6 +23,7 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
+          cache-dependency-path: ./gas/package-lock.json
       - name: Setup clasp credentials
         run: |
           echo '${{ secrets.CLASPRC_JSON }}' > ~/.clasprc.json
