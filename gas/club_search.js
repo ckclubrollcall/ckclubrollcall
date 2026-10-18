@@ -37,7 +37,13 @@ function renderClubReport(e) {
   var recordSheet = ss.getSheetByName("點名紀錄");
   var memberSheet = ss.getSheetByName("原始名單");
     
-  var allRecords = recordSheet.getDataRange().getValues();
+  var recordRange = recordSheet.getDataRange();
+  var allRecords = recordRange.getValues();
+  var allRichTexts = recordRange.getRichTextValues();
+  for (var k = 0; k < allRecords.length; k++) {
+    var richUrl = (allRichTexts && allRichTexts[k] && allRichTexts[k][10]) ? allRichTexts[k][10].getLinkUrl() : null;
+    allRecords[k]._signatureUrl = richUrl || allRecords[k][10];
+  }
   var allMembers = memberSheet.getDataRange().getValues();
 
   var currentRow = 4; // 起始列
@@ -189,7 +195,8 @@ function renderClubReport(e) {
 
   dates.forEach(d => {
     var r = recordByDate[d];
-    var sigValue = r[10] ? r[10].toString().trim() : "";
+    var sigRaw = (r._signatureUrl !== undefined) ? r._signatureUrl : r[10];
+    var sigValue = sigRaw ? sigRaw.toString().trim() : "";
     var safeSigUrl = /^https:\/\/(?:drive\.google\.com|docs\.google\.com|drive\.usercontent\.google\.com|[a-z0-9.-]*googleusercontent\.com)\//i.test(sigValue);
     // 只有確認為 Google/Drive HTTPS 簽名連結時才產生公式，避免把任意字串拼進 HYPERLINK。
     var sigDisplay = safeSigUrl ? '=HYPERLINK("' + sigValue.replace(/"/g, '""') + '", "📄 查看簽名")' : sigValue;
