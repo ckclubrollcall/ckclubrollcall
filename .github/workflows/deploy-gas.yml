@@ -12,6 +12,10 @@ jobs:
     concurrency:
       group: deploy-${{ github.ref }}
       cancel-in-progress: false
+    
+    defaults:
+      run:
+        working-directory: ./gas
 
     steps:
       - uses: actions/checkout@v7
@@ -20,13 +24,11 @@ jobs:
           node-version: "20"
           cache: "npm"
       - name: Setup clasp credentials
-        working-directory: ./gas
         run: |
           echo '${{ secrets.CLASPRC_JSON }}' > ~/.clasprc.json
           echo '${{ secrets.CLASP_JSON }}' > .clasp.json
 
       - name: Push and deploy to GAS
-        working-directory: ./gas
         env:
           DEPLOY_DESC_INPUT: ${{ github.event.head_commit.message }}
         run: |
