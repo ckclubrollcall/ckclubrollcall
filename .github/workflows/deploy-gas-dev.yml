@@ -64,7 +64,7 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           if [ -z "$RENDER_DEPLOY_HOOK_URL_DEV" ]; then
-            echo "::error::RENDER_DEPLOY_HOOK_URL_DEV secret is not set. Skipping Render deployment."
+            echo "::error::RENDER_DEPLOY_HOOK_URL_DEV secret is not set."
             exit 1
           fi
 
@@ -74,3 +74,7 @@ jobs:
             echo "::error::Render deployment failed."
             exit 1
           }
+
+      - name: Cleanup credentials
+        if: always()
+        run: rm -f ~/.clasprc.json .clasp.json
