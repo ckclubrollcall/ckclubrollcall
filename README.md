@@ -81,7 +81,7 @@ link: <https://rollcall.cksc.tw/>
 
 ### 3. 設定前端網頁
 
-1. 打開 `app.js`，將最上方的 `GAS_URL` 修改為您部署得到的 Web App URL：
+1. 打開 `app.js`，將最上方的 `GAS_URL` 修改為您部署得到的 Web App URL，或是設定您的環境變數：
 
    ```javascript
    const GAS_URL = 'https://script.google.com/macros/s/您的網頁應用程式網址/exec';
