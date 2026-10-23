@@ -48,7 +48,7 @@ function setSessionItem(key, value) {
 }
 
 function removeSessionItem(key) {
-    try { sessionStorage.removeItem(key); } catch (e) {}
+    try { sessionStorage.removeItem(key); } catch (e) { }
 }
 
 // ==========================================
@@ -223,7 +223,7 @@ function showLoginButton() {
     }
     document.getElementById('loadingArea').style.display = 'none';
     document.getElementById('loginArea').style.display = 'block';
-    
+
     // 渲染漂亮的 Google 登入按鈕
     google.accounts.id.renderButton(
         document.getElementById('g_id_signin'),
@@ -317,7 +317,7 @@ async function submitTeacherAuth() {
             await showAlert('錯誤：' + res.msg);
             return;
         }
-        
+
         document.getElementById('loadingArea').style.display = 'none';
         renderForm(res); // 登入成功，將規格化後的資料渲染主頁面
     } catch (err) {
@@ -336,7 +336,7 @@ function renderForm(info) {
     const toCache = Object.assign({}, info, { _ts: Date.now(), _tv: TOKEN_VERSION });
     try {
         setSessionItem(USER_CACHE_KEY, JSON.stringify(toCache)); // 僅儲存在目前瀏覽器工作階段
-    } catch (e) {}
+    } catch (e) { }
 
     applyLoginInfo(info);
 
@@ -355,7 +355,7 @@ function renderForm(info) {
  */
 function switchAccount() {
     removeSessionItem(USER_CACHE_KEY);
-    try { localStorage.removeItem(USER_CACHE_KEY); } catch (e) {}
+    try { localStorage.removeItem(USER_CACHE_KEY); } catch (e) { }
     clearDraft();
     clearStudentCaches();
     window.googleToken = undefined;
@@ -371,12 +371,12 @@ function clearStudentCaches() {
         Object.keys(sessionStorage)
             .filter(key => key.startsWith('students_'))
             .forEach(key => sessionStorage.removeItem(key));
-    } catch (e) {}
+    } catch (e) { }
     try {
         Object.keys(localStorage)
             .filter(key => key.startsWith('students_'))
             .forEach(key => localStorage.removeItem(key));
-    } catch (e) {}
+    } catch (e) { }
 }
 
 // ==========================================
@@ -390,20 +390,20 @@ async function showRecords() {
     const recordsArea = document.getElementById('recordsArea');
     if (!recordsArea) return;
     recordsArea.style.display = 'block';
-    
+
     const recordsListEl = document.getElementById('recordsList');
     recordsListEl.style.display = 'block';
     document.getElementById('recordDetailArea').style.display = 'none';
     document.getElementById('recordsBackLink').style.display = 'block';
-    
+
     const info = window._loginInfo;
     const isOff = isOfficer(info.remark);
     const cacheKey = isOff ? ('records_' + info.club) : ('my_records_' + info.club + '_' + info.name);
-    
+
     const cached = getSessionItem(cacheKey);
     let cachedData = null;
     let hasRenderedCache = false;
-    
+
     if (cached) {
         try {
             cachedData = JSON.parse(cached);
@@ -420,12 +420,12 @@ async function showRecords() {
             removeSessionItem(cacheKey);
         }
     }
-    
+
     if (!hasRenderedCache) {
         document.getElementById('recordsLoading').style.display = 'block'; // 顯示轉圈圈動畫
         recordsListEl.innerHTML = '';
     }
-    
+
     try {
         const token = (window._loginInfo && window._loginInfo.token) || window.googleToken;
         let list;
@@ -435,9 +435,9 @@ async function showRecords() {
             const identity = `${info.class} ${info.no} ${info.name}`;
             list = await gasPost({ action: 'getMyAttendance', club: info.club, identity, token });
         }
-        
+
         document.getElementById('recordsLoading').style.display = 'none';
-        
+
         if (list && list.error) {
             if (!hasRenderedCache) {
                 recordsListEl.textContent = list.msg || '讀取失敗，請稍後再試。';
@@ -450,9 +450,9 @@ async function showRecords() {
             }
             return;
         }
-        
+
         setSessionItem(cacheKey, JSON.stringify(list));
-        
+
         if (!hasRenderedCache || JSON.stringify(list) !== JSON.stringify(cachedData)) {
             if (isOff) {
                 renderOfficerRecordList(list);
@@ -510,11 +510,11 @@ async function showRecordDetail(date) {
     document.getElementById('recordsLoading').style.display = 'none';
     document.getElementById('recordsList').style.display = 'none';
     document.getElementById('recordsBackLink').style.display = 'none';
-    
+
     const detailDiv = document.getElementById('recordDetailArea');
     detailDiv.style.display = 'block';
     detailDiv.innerHTML = `<div style="text-align:center;padding:24px 0;color:var(--gray-500);"><div class="spinner" style="margin:0 auto 10px;"></div>載入中…</div>`;
-    
+
     const r = await gasPost({ action: 'getAttendanceDetail', club: info.club, date, token: (window._loginInfo && window._loginInfo.token) || window.googleToken });
 
     if (r.error || r.status === 'error') {
@@ -552,7 +552,7 @@ async function showRecordDetail(date) {
     }
     const detailBackLink = document.getElementById('recordDetailBackLink');
     if (detailBackLink) {
-        detailBackLink.addEventListener('click', function(e) {
+        detailBackLink.addEventListener('click', function (e) {
             e.preventDefault();
             navigateTo('records.html');
         }, { once: true });
@@ -598,7 +598,7 @@ async function enterNewFormMode() {
 
     const footerLink = document.getElementById('formFooterLink');
     footerLink.textContent = '返回';
-    footerLink.onclick = function() {
+    footerLink.onclick = function () {
         navigateTo('menu.html');
         return false;
     };
@@ -725,12 +725,12 @@ function renderStudents(students) {
         cb.className = 'student-cb';
         cb.value = text;
         cb.id = 'cb_' + s.id;
-        
+
         // 點擊打勾時切換樣式並即時更新統計與草稿
         cb.addEventListener('change', () => {
             item.classList.toggle('present', cb.checked);
             updateCount();
-            saveDraft(); 
+            saveDraft();
         });
 
         const lbl = document.createElement('label');
@@ -864,7 +864,7 @@ async function submitForm() {
             if (sigLabel) sigLabel.textContent = '老師簽名';
             const sigModalTitle = document.getElementById('sigModalTitle');
             if (sigModalTitle) sigModalTitle.textContent = '老師請在此簽名';
-            
+
             if (isEditing) {
                 navigateTo(`records.html?date=${encodeURIComponent(editingDate)}`);
             } else {
@@ -949,7 +949,7 @@ async function enterEditMode(record, skipPush) {
     document.getElementById('submitBtn').disabled = true; // 尚未重新簽名，預設先停用
     document.getElementById('submitBtn').onclick = submitForm;
     document.getElementById('formFooterLink').textContent = '放棄修改';
-    document.getElementById('formFooterLink').onclick = function() {
+    document.getElementById('formFooterLink').onclick = function () {
         clearDraft();
         window._originalRecord = null;
         window._editingDate = null;
@@ -986,7 +986,7 @@ function checkIfFormChanged() {
     const currentAbsentList = absentList.length > 0 ? absentList.join('\n') : '全勤';
 
     // 檢查欄位是否有變更
-    const isFieldsChanged = 
+    const isFieldsChanged =
         currentDesc !== window._originalRecord.desc ||
         currentTeacherPresent !== window._originalRecord.teacherPresent ||
         currentSubTeacher !== window._originalRecord.subTeacher ||
@@ -1081,21 +1081,21 @@ function initCanvas() {
         const src = e.touches ? e.touches[0] : e;
         return { x: src.clientX - canvasRect.left, y: src.clientY - canvasRect.top };
     };
-    
+
     // 手勢觸碰開始
     const start = (e) => {
         isDrawing = true;
         canvasRect = canvas.getBoundingClientRect();
         draw(e);
     };
-    
+
     // 觸碰結束
     const stop = () => {
         isDrawing = false;
         ctx.beginPath();
         if (window._originalRecord) checkIfFormChanged();
     };
-    
+
     // 繪製線條
     const draw = (e) => {
         if (!isDrawing) return;
@@ -1316,14 +1316,14 @@ function showAlert(message, title = "提示") {
 
         titleEl.textContent = title;
         messageEl.textContent = message;
-        
+
         cancelBtn.style.display = 'none';
         confirmBtn.className = 'btn btn-primary';
         confirmBtn.textContent = '確定';
 
         dialog.classList.add('open');
 
-        confirmBtn.addEventListener('click', function() {
+        confirmBtn.addEventListener('click', function () {
             dialog.classList.remove('open');
             resolve(true);
         }, { once: true });
@@ -1351,12 +1351,12 @@ function showConfirm(message, title = "確認動作") {
 
         dialog.classList.add('open');
 
-        confirmBtn.addEventListener('click', function() {
+        confirmBtn.addEventListener('click', function () {
             dialog.classList.remove('open');
             resolve(true);
         }, { once: true });
 
-        cancelBtn.addEventListener('click', function() {
+        cancelBtn.addEventListener('click', function () {
             dialog.classList.remove('open');
             resolve(false);
         }, { once: true });
@@ -1367,7 +1367,7 @@ function bindUiEvents() {
     const bindClick = (id, handler) => {
         const el = document.getElementById(id);
         if (!el) return;
-        el.addEventListener('click', function(e) {
+        el.addEventListener('click', function (e) {
             e.preventDefault();
             handler(e);
         });
@@ -1388,7 +1388,7 @@ function bindUiEvents() {
 
     const desc = document.getElementById('desc');
     if (desc) {
-        desc.addEventListener('input', function() {
+        desc.addEventListener('input', function () {
             updateCharCounter(desc, 'descCounter', MAX_DESC_LEN);
             saveDraft();
         });
@@ -1396,7 +1396,7 @@ function bindUiEvents() {
 
     const teacherPresent = document.getElementById('teacherPresent');
     if (teacherPresent) {
-        teacherPresent.addEventListener('change', function() {
+        teacherPresent.addEventListener('change', function () {
             toggleSubTeacher();
             saveDraft();
         });
