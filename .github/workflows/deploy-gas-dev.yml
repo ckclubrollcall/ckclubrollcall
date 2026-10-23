@@ -58,16 +58,19 @@ jobs:
           npx --no-install clasp push --force
           npx --no-install clasp deploy -i "$DEV_ID" -d "$DEPLOY_DESC"
 
-      - name: Push and deploy to Render dev environment
+      - name: Deploy to Render dev environment
         env:
           RENDER_DEPLOY_HOOK_URL_DEV: ${{ secrets.RENDER_DEPLOY_HOOK_URL_DEV }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           if [ -z "$RENDER_DEPLOY_HOOK_URL_DEV" ]; then
             echo "::error::RENDER_DEPLOY_HOOK_URL_DEV secret is not set. Skipping Render deployment."
             exit 1
           fi
 
-          curl --fail --silent --show-error --request POST "$RENDER_DEPLOY_HOOK_URL_DEV" || {
+          curl --fail --silent --show-error --max-time 30 --retry 2 \
+            --request POST "${RENDER_DEPLOY_HOOK_URL_DEV}&ref=${HEAD_SHA}" \
+            > /dev/null || {
             echo "::error::Render deployment failed."
             exit 1
           }
