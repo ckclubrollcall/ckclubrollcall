@@ -14,7 +14,7 @@ function onOpen() {
 /**讀取系統設定資料夾 */
 function getReportFolderId() {
   try {
-    var ss  = SpreadsheetApp.getActiveSpreadsheet();
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
     var raw = ss.getSheetByName("系統設定").getRange("B2").getValue();
     return parseDriveId(raw);
   } catch (e) {
