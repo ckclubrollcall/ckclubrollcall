@@ -37,9 +37,13 @@ jobs:
           cache: npm
           cache-dependency-path: ./gas/package-lock.json
       - name: Setup clasp credentials for dev environment
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+          CLASP_JSON_DEV: ${{ secrets.CLASP_JSON_DEV }}
         run: |
-          echo '${{ secrets.CLASPRC_JSON }}' > ~/.clasprc.json
-          echo '${{ secrets.CLASP_JSON_DEV }}' > .clasp.json
+          umask 077
+          printf '%s' "$CLASPRC_JSON" > ~/.clasprc.json
+          printf '%s' "$CLASP_JSON_DEV" > .clasp.json
 
       - name: Push and deploy to GAS dev environment
         env:
