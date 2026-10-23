@@ -9,13 +9,16 @@ on:
 jobs:
   deploy:
     name: Deploy to GAS and Render dev environment
-    if: (github.event.action == 'labeled' &&
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      ((github.event.action == 'labeled' &&
       github.event.label.name == 'needs testing') ||
       (github.event.action == 'synchronize' &&
-      contains(github.event.pull_request.labels.*.name, 'needs testing'))
+      contains(github.event.pull_request.labels.*.name, 'needs testing')))
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     concurrency:
-      group: deploy-${{ github.ref }}
+      group: deploy-dev
       cancel-in-progress: false
 
     defaults:
