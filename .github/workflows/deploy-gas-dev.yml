@@ -11,7 +11,7 @@ jobs:
     name: Deploy to GAS and Render dev environment
     if: (github.event.action == 'labeled' &&
       github.event.label.name == 'needs testing') ||
-      (github.event.action == 'synchornize' &&
+      (github.event.action == 'synchronize' &&
       contains(github.event.pull_request.labels.*.name, 'needs testing'))
     runs-on: ubuntu-latest
     concurrency:
