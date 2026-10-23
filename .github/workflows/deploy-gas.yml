@@ -50,3 +50,7 @@ jobs:
           DEPLOY_DESC=$(printf '%s' "$DEPLOY_DESC_INPUT" | tr '\n' ' ' | cut -c1-100)
           npx --no-install clasp push --force
           npx --no-install clasp deploy -i "$PROD_ID" -d "$DEPLOY_DESC"
+
+      - name: Cleanup credentials
+        if: always()
+        run: rm -f ~/.clasprc.json .clasp.json
