@@ -5,7 +5,7 @@ let contributionAnnotation = "部分程式內容由 [@mm-news](https://github.co
 // 0. 全域常數與系統設定
 // ==========================================
 // 指向 Google 雲端試算表後台的 API 網址，用於讀寫資料
-const GAS_URL = window.GAS_URL;
+const GAS_URL = window.APP_CONFIG.GAS_URL;
 console.assert(GAS_URL && GAS_URL.startsWith('https://script.google.com/'), 'GAS_URL 未正確設定。');
 // 用於 Google 帳號登入驗證的用戶端識別碼 (Client ID)
 const CLIENT_ID = '311035173241-nuamoemc7al4bhlp5p0nploepd6rg23h.apps.googleusercontent.com';
