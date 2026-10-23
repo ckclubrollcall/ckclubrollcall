@@ -47,7 +47,8 @@ jobs:
 
       - name: Push and deploy to GAS dev environment
         env:
-          DEPLOY_DESC_INPUT: ${{ github.event.head_commit.message }}
+          DEPLOY_DESC_INPUT: ${{ github.event.pull_request.title }}
+          DEV_ID: ${{ secrets.DEV_ID }}
         run: |
           DEPLOY_DESC=$(printf '%s' "$DEPLOY_DESC_INPUT" | tr '\n' ' ' | cut -c1-100)
           npx @google/clasp push --force
