@@ -1,6 +1,7 @@
 import { writeFile } from "node:fs/promises";
 
 const GAS_URL = process.env.GAS_URL;
+const CLIENT_ID = process.env.OAUTH_CLIENT_ID;
 
 if (!GAS_URL) {
     throw new Error("缺少 GAS_URL 環境變數");
@@ -12,10 +13,15 @@ if (!["http:", "https:"].includes(url.protocol)) {
     throw new Error("GAS_URL 必須使用 HTTP 或 HTTPS");
 }
 
+if (!CLIENT_ID) {
+    throw new Error("缺少 OAUTH_CLIENT_ID 環境變數");
+}
+
 await writeFile(
     "public/config.js",
     `window.APP_CONFIG = Object.freeze(${JSON.stringify({
         GAS_URL: GAS_URL.replace(/\/+$/, ""),
+        CLIENT_ID: CLIENT_ID,
     })});\n`,
     "utf8",
 );
