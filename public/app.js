@@ -5,9 +5,11 @@ let contributionAnnotation = "部分程式內容由 [@mm-news](https://github.co
 // 0. 全域常數與系統設定
 // ==========================================
 // 指向 Google 雲端試算表後台的 API 網址，用於讀寫資料
-const GAS_URL = 'https://script.google.com/macros/s/AKfycby-nBw6O7YdUrXTOZ-2WR4A1o8FP68iwhVgmOOa1WbSWFlo_QLv6jUIjlbWH7S6dHrb/exec';
+const GAS_URL = window.APP_CONFIG.GAS_URL;
+console.assert(GAS_URL && GAS_URL.startsWith('https://script.google.com/'), 'GAS_URL 未正確設定。');
 // 用於 Google 帳號登入驗證的用戶端識別碼 (Client ID)
-const CLIENT_ID = '311035173241-nuamoemc7al4bhlp5p0nploepd6rg23h.apps.googleusercontent.com';
+const CLIENT_ID = window.APP_CONFIG.CLIENT_ID;
+console.assert(CLIENT_ID, 'CLIENT_ID 未正確設定。');
 
 const MAX_DESC_LEN = 200;    // 社課內容簡述最大字數
 const MAX_TEACHER_LEN = 30;   // 代課老師姓名最大字數
@@ -724,8 +726,8 @@ function renderStudents(students) {
         cb.type = 'checkbox';
         cb.className = 'student-cb';
         cb.value = text;
-        cb.id = 'cb_' + s.id;
-
+        cb.id = 'cb_' + s.class + s.no;
+        
         // 點擊打勾時切換樣式並即時更新統計與草稿
         cb.addEventListener('change', () => {
             item.classList.toggle('present', cb.checked);
@@ -739,6 +741,15 @@ function renderStudents(students) {
 
         item.appendChild(cb);
         item.appendChild(lbl);
+
+        item.addEventListener('click', (e) => {
+            if (e.currentTarget === e.target) {
+                cb.checked = !cb.checked;
+                item.classList.toggle('present', cb.checked);
+                updateCount();
+                saveDraft();
+            }
+        });
         listDiv.appendChild(item);
     });
 
