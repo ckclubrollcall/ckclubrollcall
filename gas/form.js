@@ -128,7 +128,7 @@ function verifyIdToken(idToken) {
       return null;
     }
     var payload = JSON.parse(response.getContentText());
-    var expectedClientId = "311035173241-nuamoemc7al4bhlp5p0nploepd6rg23h.apps.googleusercontent.com";
+    var expectedClientId = PropertiesService.getScriptProperties().getProperty("OAUTH_CLIENT_ID");
     if (payload.aud !== expectedClientId) {
       logToSheet("Client ID 不符。");
       return null;

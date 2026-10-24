@@ -81,13 +81,14 @@ link: <https://rollcall.cksc.tw/>
 
 ### 3. 設定前端網頁
 
-1. 打開 `app.js`，將最上方的 `GAS_URL` 修改為您部署得到的 Web App URL：
+1. 打開 `app.js`，將最上方的 `GAS_URL` 修改為您部署得到的 Web App URL，或是設定您的環境變數：
 
    ```javascript
    const GAS_URL = 'https://script.google.com/macros/s/您的網頁應用程式網址/exec';
    ```
 
-2. 將 `CLIENT_ID` 修改為您申請的 Google OAuth Client ID。
+2. 將 `CLIENT_ID` 修改為您申請的 Google OAuth Client ID，或是設定您的環境變數，並更新至 `form.js` 的 Project Properties。
+
 3. 將所有前端檔案 (`index.html`, `menu.html`, `records.html`, `form.html`, `style.css`, `app.js`) 上傳至靜態網頁託管平台（如 GitHub Pages、Vercel 或學校伺服器）即可上線運作。
 
 ---
