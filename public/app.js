@@ -741,6 +741,15 @@ function renderStudents(students) {
 
         item.appendChild(cb);
         item.appendChild(lbl);
+
+        item.addEventListener('click', (e) => {
+            if (e.currentTarget === e.target) {
+                cb.checked = !cb.checked;
+                item.classList.toggle('present', cb.checked);
+                updateCount();
+                saveDraft();
+            }
+        });
         listDiv.appendChild(item);
     });
 
