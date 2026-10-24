@@ -726,7 +726,7 @@ function renderStudents(students) {
         cb.type = 'checkbox';
         cb.className = 'student-cb';
         cb.value = text;
-        cb.id = 'cb_' + s.id;
+        cb.id = 'cb_' + s.class + s.no;
         
         // 點擊打勾時切換樣式並即時更新統計與草稿
         cb.addEventListener('change', () => {
@@ -741,6 +741,15 @@ function renderStudents(students) {
 
         item.appendChild(cb);
         item.appendChild(lbl);
+
+        item.addEventListener('click', (e) => {
+            if (e.currentTarget === e.target) {
+                cb.checked = !cb.checked;
+                item.classList.toggle('present', cb.checked);
+                updateCount();
+                saveDraft();
+            }
+        });
         listDiv.appendChild(item);
     });
 
