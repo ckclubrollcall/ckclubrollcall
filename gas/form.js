@@ -815,7 +815,7 @@ function submitAttendance(data) {
   } finally {
     lock.releaseLock();
   }
-  }
+}
 
 // ==========================================
 // 6. API 路由器 (doPost / doGet)
@@ -825,112 +825,112 @@ function submitAttendance(data) {
  * 格式化與回傳 JSON 格式字串並附加 CORS 標頭，允許跨網域存取
  */
 function jsonResponse(data, headers) {
-    var output = ContentService
-      .createTextOutput(JSON.stringify(data))
-      .setMimeType(ContentService.MimeType.JSON);
-    return output;
+  var output = ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+  return output;
+}
+
+/**
+ * 響應 HTTP GET 請求 (純提示)
+ */
+function doGet(e) {
+  return ContentService.createTextOutput("建中社團點名系統 API endpoint. 請使用 POST 方法存取。");
+}
+
+/**
+ * 核心 Web API 控制器
+ * 接收從網頁前端發過來的 POST 請求，並根據 action 指令轉發至對應處理函式。
+ */
+function doPost(e) {
+  var corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type"
+  };
+
+  if (!e || !e.postData) {
+    return jsonResponse({ status: "error", message: "沒有收到任何資料" }, corsHeaders);
   }
 
-  /**
-   * 響應 HTTP GET 請求 (純提示)
-   */
-  function doGet(e) {
-    return ContentService.createTextOutput("建中社團點名系統 API endpoint. 請使用 POST 方法存取。");
-  }
+  try {
+    var req = JSON.parse(e.postData.contents);
+    var action = req.action;
+    var result;
 
-  /**
-   * 核心 Web API 控制器
-   * 接收從網頁前端發過來的 POST 請求，並根據 action 指令轉發至對應處理函式。
-   */
-  function doPost(e) {
-    var corsHeaders = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type"
-    };
-
-    if (!e || !e.postData) {
-      return jsonResponse({ status: "error", message: "沒有收到任何資料" }, corsHeaders);
-    }
-
-    try {
-      var req = JSON.parse(e.postData.contents);
-      var action = req.action;
-      var result;
-
-      if (action === "verifyTestLogin") {
-        result = verifyTestLogin(req.email, req.password, req.club, req.identity);
-      } else {
-        var token = (action === "submitAttendance") ? (req.data && req.data.token) : req.token;
-        var auth = authenticateRequest(token);
-        if (auth.error) {
-          return jsonResponse(auth, corsHeaders);
-        }
-
-        // API Action 路由對照表
-        if (action === "getLoginUser") {
-          result = auth.user;
-        } else if (action === "getClubMembers") {
-          if (auth.user.club !== req.clubName && auth.user.remark !== "管理員") {
-            return jsonResponse({ status: "error", message: "無權限查看此社團名單" }, corsHeaders);
-          }
-          result = getClubMembers(req.clubName);
-        } else if (action === "submitAttendance") {
-          if (auth.user.club !== req.data.club) {
-            return jsonResponse({ status: "error", message: "無權限為此社團提交點名資料" }, corsHeaders);
-          }
-          if (!isOfficer(auth.user.remark)) {
-            return jsonResponse({ status: "error", message: "只有社團幹部才能提交或修改點名資料" }, corsHeaders);
-          }
-          req.data.email = auth.user.email;
-          req.data.fillerInfo = auth.user.fillerInfo;
-          req.data.fillerName = auth.user.name;
-
-          result = submitAttendance(req.data);
-        } else if (action === "getAttendanceList") {
-          if (auth.user.club !== req.club) {
-            return jsonResponse({ status: "error", message: "無權限查看此社團的紀錄" }, corsHeaders);
-          }
-          if (!isOfficer(auth.user.remark)) {
-            return jsonResponse({ status: "error", message: "只有幹部才能查看社團點名列表" }, corsHeaders);
-          }
-          result = getAttendanceList(req.club);
-        } else if (action === "getAttendanceDetail") {
-          if (auth.user.club !== req.club) {
-            return jsonResponse({ status: "error", message: "無權限查看此社團的紀錄詳情" }, corsHeaders);
-          }
-          if (!isOfficer(auth.user.remark)) {
-            return jsonResponse({ status: "error", message: "無權限查看此紀錄詳情" }, corsHeaders);
-          }
-          result = getAttendanceDetail(req.club, req.date);
-        } else if (action === "getMyAttendance") {
-          if (auth.user.club !== req.club) {
-            return jsonResponse({ status: "error", message: "無權限查看此社團的出缺席紀錄" }, corsHeaders);
-          }
-          var expectedIdentity = auth.user.class + " " + auth.user.no + " " + auth.user.name;
-          if (auth.user.id === "TEST_USER") {
-            expectedIdentity = req.identity;
-          }
-          if (expectedIdentity.trim() !== req.identity.trim()) {
-            return jsonResponse({ status: "error", message: "無權限查看他人出缺席紀錄" }, corsHeaders);
-          }
-          result = getMyAttendance(req.club, req.identity);
-        } else {
-          result = { status: "error", message: "未知的操作指令" };
-        }
+    if (action === "verifyTestLogin") {
+      result = verifyTestLogin(req.email, req.password, req.club, req.identity);
+    } else {
+      var token = (action === "submitAttendance") ? (req.data && req.data.token) : req.token;
+      var auth = authenticateRequest(token);
+      if (auth.error) {
+        return jsonResponse(auth, corsHeaders);
       }
 
-      return jsonResponse(result, corsHeaders);
+      // API Action 路由對照表
+      if (action === "getLoginUser") {
+        result = auth.user;
+      } else if (action === "getClubMembers") {
+        if (auth.user.club !== req.clubName && auth.user.remark !== "管理員") {
+          return jsonResponse({ status: "error", message: "無權限查看此社團名單" }, corsHeaders);
+        }
+        result = getClubMembers(req.clubName);
+      } else if (action === "submitAttendance") {
+        if (auth.user.club !== req.data.club) {
+          return jsonResponse({ status: "error", message: "無權限為此社團提交點名資料" }, corsHeaders);
+        }
+        if (!isOfficer(auth.user.remark)) {
+          return jsonResponse({ status: "error", message: "只有社團幹部才能提交或修改點名資料" }, corsHeaders);
+        }
+        req.data.email = auth.user.email;
+        req.data.fillerInfo = auth.user.fillerInfo;
+        req.data.fillerName = auth.user.name;
 
-    } catch (err) {
-      return jsonResponse({ status: "error", message: "請求處理失敗，請稍後再試" }, corsHeaders);
+        result = submitAttendance(req.data);
+      } else if (action === "getAttendanceList") {
+        if (auth.user.club !== req.club) {
+          return jsonResponse({ status: "error", message: "無權限查看此社團的紀錄" }, corsHeaders);
+        }
+        if (!isOfficer(auth.user.remark)) {
+          return jsonResponse({ status: "error", message: "只有幹部才能查看社團點名列表" }, corsHeaders);
+        }
+        result = getAttendanceList(req.club);
+      } else if (action === "getAttendanceDetail") {
+        if (auth.user.club !== req.club) {
+          return jsonResponse({ status: "error", message: "無權限查看此社團的紀錄詳情" }, corsHeaders);
+        }
+        if (!isOfficer(auth.user.remark)) {
+          return jsonResponse({ status: "error", message: "無權限查看此紀錄詳情" }, corsHeaders);
+        }
+        result = getAttendanceDetail(req.club, req.date);
+      } else if (action === "getMyAttendance") {
+        if (auth.user.club !== req.club) {
+          return jsonResponse({ status: "error", message: "無權限查看此社團的出缺席紀錄" }, corsHeaders);
+        }
+        var expectedIdentity = auth.user.class + " " + auth.user.no + " " + auth.user.name;
+        if (auth.user.id === "TEST_USER") {
+          expectedIdentity = req.identity;
+        }
+        if (expectedIdentity.trim() !== req.identity.trim()) {
+          return jsonResponse({ status: "error", message: "無權限查看他人出缺席紀錄" }, corsHeaders);
+        }
+        result = getMyAttendance(req.club, req.identity);
+      } else {
+        result = { status: "error", message: "未知的操作指令" };
+      }
     }
-  }
 
-  /**
-   * 系統驗證授權專用之測試函數
-   */
-  function forceAuth() {
-    var res = UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo", { muteHttpExceptions: true });
-    Logger.log("測試連線狀態碼: " + res.getResponseCode());
+    return jsonResponse(result, corsHeaders);
+
+  } catch (err) {
+    return jsonResponse({ status: "error", message: "請求處理失敗，請稍後再試" }, corsHeaders);
   }
+}
+
+/**
+ * 系統驗證授權專用之測試函數
+ */
+function forceAuth() {
+  var res = UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo", { muteHttpExceptions: true });
+  Logger.log("測試連線狀態碼: " + res.getResponseCode());
+}

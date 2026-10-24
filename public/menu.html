@@ -1,76 +1,149 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-TW">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>建中社團線上點名系統</title>
-  <link rel="icon" href="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E7%A4%BE.png">
-  <meta property="og:title" content="建中社團線上點名系統">
-  <meta property="og:description" content="請使用@gl.ck.tp.edu.tw帳號填寫">
-  <meta property="og:image"
-    content="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E9%A0%90%E8%A6%BD.png">
-  <meta property="og:type" content="website">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self';
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>建中社團線上點名系統</title>
+    <link
+      rel="icon"
+      href="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E7%A4%BE.png"
+    />
+    <meta property="og:title" content="建中社團線上點名系統" />
+    <meta property="og:description" content="請使用@gl.ck.tp.edu.tw帳號填寫" />
+    <meta
+      property="og:image"
+      content="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E9%A0%90%E8%A6%BD.png"
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self';
     script-src 'self' https://accounts.google.com https://apis.google.com;
     style-src 'self' 'unsafe-inline' https://accounts.google.com;
+    font-src 'self' https://cdn.jsdelivr.net;
     img-src 'self' https://raw.githubusercontent.com https://*.googleusercontent.com data:;
     connect-src https://script.google.com https://accounts.google.com https://script.googleusercontent.com/;
     frame-src https://accounts.google.com;
     base-uri 'self';
     object-src 'none';
-    form-action 'self';">
-  <link rel="stylesheet" href="style.css">
-</head>
-<body data-page="menu">
-  <header id="siteHeader" style="cursor:pointer;">
-    <div class="logo">
-      <img src="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E6%A0%A1%E5%BE%BD.png"
-        style="width:38px;height:38px;object-fit:contain;" alt="建中校徽">
-    </div>
-    <div>
-      <h1>建中社團線上點名系統</h1>
-    </div>
-  </header>
-
-  <div class="card">
-    <div id="menuArea">
-      <div class="menu-btn-row">
-        <button class="btn btn-menu-green" id="btnNewForm">
-          <span class="menu-btn-title" style="display: inline-flex; align-items: center; gap: 8px;">
-            <img src="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E5%A1%AB%E5%AF%AB%E6%96%B0%E8%A1%A8%E5%96%AEicon.png" alt="開始點名" style="width: 26px; height: 26px; object-fit: contain;">
-            開始點名
-          </span>
-          <span class="menu-btn-desc">建立並填寫今日的社課點名表單</span>
-        </button>
-        <button class="btn btn-menu-blue" id="btnShowRecords">
-          <span class="menu-btn-title" style="display: inline-flex; align-items: center; gap: 8px;">
-            <img src="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E6%9F%A5%E8%A9%A2%E7%B4%80%E9%8C%84icon.png" alt="查詢紀錄" style="width: 26px; height: 26px; object-fit: contain;">
-            查詢紀錄
-          </span>
-          <span class="menu-btn-desc">查看或修改過往的歷史點名資料</span>
-        </button>
+    form-action 'self';"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body data-page="menu">
+    <header id="siteHeader" style="cursor: pointer">
+      <div class="logo">
+        <img
+          src="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E6%A0%A1%E5%BE%BD.png"
+          style="width: 38px; height: 38px; object-fit: contain"
+          alt="建中校徽"
+        />
       </div>
-      <p style="text-align:center;margin-top:14px;">
-        <a href="#" id="menuFooterLink"
-          style="font-size:.78rem;color:var(--gray-500);text-decoration:underline;">
-          切換帳號／登出
-        </a>
-      </p>
-    </div>
-  </div>
+      <div>
+        <h1>建中社團線上點名系統</h1>
+      </div>
+    </header>
 
-  <footer>開發人員：社團點名系統維護小組</footer>
-
-  <div id="customDialog" class="modal-overlay">
-    <div class="modal-content" style="max-width: 400px; text-align: center;">
-      <h3 id="customDialogTitle" style="font-size: 1.15rem; margin-bottom: 12px; font-weight: 700;">提示</h3>
-      <p id="customDialogMessage" style="font-size: 0.95rem; color: var(--gray-700); margin-bottom: 20px; line-height: 1.5; white-space: pre-line;"></p>
-      <div class="btn-group" id="customDialogBtnGroup">
-        <button class="btn btn-gray" id="customDialogCancelBtn" type="button" style="padding: 10px;">取消</button>
-        <button class="btn btn-primary" id="customDialogConfirmBtn" type="button" style="padding: 10px;">確認</button>
+    <div class="card">
+      <div id="menuArea">
+        <div class="menu-btn-row">
+          <button class="btn btn-menu-green" id="btnNewForm">
+            <span
+              class="menu-btn-title"
+              style="display: inline-flex; align-items: center; gap: 8px"
+            >
+              <img
+                src="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E5%A1%AB%E5%AF%AB%E6%96%B0%E8%A1%A8%E5%96%AEicon.png"
+                alt="開始點名"
+                style="width: 26px; height: 26px; object-fit: contain"
+              />
+              開始點名
+            </span>
+            <span class="menu-btn-desc">建立並填寫今日的社課點名表單</span>
+          </button>
+          <button class="btn btn-menu-blue" id="btnShowRecords">
+            <span
+              class="menu-btn-title"
+              style="display: inline-flex; align-items: center; gap: 8px"
+            >
+              <img
+                src="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E6%9F%A5%E8%A9%A2%E7%B4%80%E9%8C%84icon.png"
+                alt="查詢紀錄"
+                style="width: 26px; height: 26px; object-fit: contain"
+              />
+              查詢紀錄
+            </span>
+            <span class="menu-btn-desc">查看或修改過往的歷史點名資料</span>
+          </button>
+        </div>
+        <p style="text-align: center; margin-top: 14px">
+          <a
+            href="#"
+            id="menuFooterLink"
+            style="
+              font-size: 0.78rem;
+              color: var(--gray-500);
+              text-decoration: underline;
+            "
+          >
+            切換帳號／登出
+          </a>
+        </p>
       </div>
     </div>
-  </div>
+
+    <footer>
+      開發人員：社團點名系統維護小組<a
+        href="https://github.com/ckclubrollcall/ckclubrollcall"
+        target="_blank"
+        rel="noopener noreferrer"
+        ><i class="bi bi-github"></i></a
+      ><a
+        href="https://github.com/ckclubrollcall/ckclubrollcall/issues"
+        target="_blank"
+        rel="noopener noreferrer"
+        ><i class="bi bi-bug"></i
+      ></a>
+    </footer>
+
+    <div id="customDialog" class="modal-overlay">
+      <div class="modal-content" style="max-width: 400px; text-align: center">
+        <h3
+          id="customDialogTitle"
+          style="font-size: 1.15rem; margin-bottom: 12px; font-weight: 700"
+        >
+          提示
+        </h3>
+        <p
+          id="customDialogMessage"
+          style="
+            font-size: 0.95rem;
+            color: var(--gray-700);
+            margin-bottom: 20px;
+            line-height: 1.5;
+            white-space: pre-line;
+          "
+        ></p>
+        <div class="btn-group" id="customDialogBtnGroup">
+          <button
+            class="btn btn-gray"
+            id="customDialogCancelBtn"
+            type="button"
+            style="padding: 10px"
+          >
+            取消
+          </button>
+          <button
+            class="btn btn-primary"
+            id="customDialogConfirmBtn"
+            type="button"
+            style="padding: 10px"
+          >
+            確認
+          </button>
+        </div>
+      </div>
+    </div>
 
     <script src="config.js"></script>
     <script src="app.js"></script>

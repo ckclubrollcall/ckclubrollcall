@@ -1,7 +1,6 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-TW">
-
-<!-- 
+  <!-- 
 沒事拜託不要亂玩我程式，你要玩我可以開一個全新的系統給你玩拜託不要搞算我求你
 我真的用了很久拜託別玩，會造成學校和我很大的麻煩。
 
@@ -9,18 +8,28 @@
 電子郵件: dontplaymyrollcallsystemplease@duck.com
 -->
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>建中社團線上點名系統</title>
-  <link rel="icon" href="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E7%A4%BE.png">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.2/font/bootstrap-icons.min.css">
-  <meta property="og:title" content="建中社團線上點名系統">
-  <meta property="og:description" content="請使用@gl.ck.tp.edu.tw帳號填寫">
-  <meta property="og:image"
-    content="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E9%A0%90%E8%A6%BD.png">
-  <meta property="og:type" content="website">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self';
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>建中社團線上點名系統</title>
+    <link
+      rel="icon"
+      href="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E7%A4%BE.png"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.2/font/bootstrap-icons.min.css"
+    />
+    <meta property="og:title" content="建中社團線上點名系統" />
+    <meta property="og:description" content="請使用@gl.ck.tp.edu.tw帳號填寫" />
+    <meta
+      property="og:image"
+      content="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E9%A0%90%E8%A6%BD.png"
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self';
     script-src 'self' https://accounts.google.com https://apis.google.com;
     style-src 'self' 'unsafe-inline' https://accounts.google.com;
     font-src 'self' https://cdn.jsdelivr.net;
@@ -29,81 +38,143 @@
     frame-src https://accounts.google.com;
     base-uri 'self';
     object-src 'none';
-    form-action 'self';">
-  
-  
+    form-action 'self';"
+    />
+
     <!-- CSS -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
+  </head>
 
-</head>
-
-<body data-page="login">
-
-  <header id="siteHeader" style="cursor:pointer;">
-    <div class="logo">
-      <img src="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E6%A0%A1%E5%BE%BD.png"
-        style="width:38px;height:38px;object-fit:contain;" alt="建中校徽">
-    </div>
-    <div>
-      <h1>建中社團線上點名系統</h1>
-    </div>
-  </header>
-
-  <div class="card">
-
-    <!-- 身分驗證頁面 -->
-    <div id="loadingArea" style="display:none;">
-      <div class="spinner"></div>
-      驗證中...
-    </div>
-
-    <!-- 登入Google帳號頁面 -->
-    <div id="loginArea">
-      <p class="login-title">請使用學校 Google 帳號登入</p>
-      <div id="g_id_signin"></div>
-    </div>
-
-    <!-- 外部帳號登入 -->
-    <div id="teacherAuthArea">
-      <h3>測試登入</h3>
-      <p>您的帳號不在學生名單中，請使用學校 Google帳號登入。</p>
-      <p>若欲測試本系統，請聯絡管理員協助建立測試用帳號與密碼。</p>
-      <div class="form-group">
-        <label>Email</label>
-        <input type="text" id="teacherEmail" placeholder="請輸入電子郵件" maxlength="100" autocomplete="email">
+  <body data-page="login">
+    <header id="siteHeader" style="cursor: pointer">
+      <div class="logo">
+        <img
+          src="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E6%A0%A1%E5%BE%BD.png"
+          style="width: 38px; height: 38px; object-fit: contain"
+          alt="建中校徽"
+        />
       </div>
-      <div class="form-group">
-        <label>密碼</label>
-        <input type="password" id="teacherPassword" placeholder="請輸入測試密碼" maxlength="100" autocomplete="current-password">
+      <div>
+        <h1>建中社團線上點名系統</h1>
       </div>
-      <div class="form-group">
-        <label>社團</label>
-        <input type="text" id="testClub" placeholder="需與現有社團名稱完全一致" maxlength="30">
-      </div>
-      <div class="form-group">
-        <label>身分</label>
-        <select id="testIdentity">
-          <option value="幹部">幹部</option>
-          <option value="社員">社員</option>
-        </select>
-      </div>
-      <button class="btn btn-primary" id="teacherAuthBtn" style="margin-top:8px;">登入</button>
-    </div>
-    
-  </div>
-  <footer>開發人員：社團點名系統維護小組<a href="https://github.com/ckclubrollcall/ckclubrollcall" target="_blank" rel="noopener noreferrer"><i class="bi bi-github"></i></a><a href="https://github.com/ckclubrollcall/ckclubrollcall/issues" target="_blank" rel="noopener noreferrer"><i class="bi bi-bug"></i></a></footer>
+    </header>
 
-  <!-- 自訂彈出式視窗 Dialog Modal -->
-  <div id="customDialog" class="modal-overlay">
-    <div class="modal-content" style="max-width: 400px; text-align: center;">
-      <h3 id="customDialogTitle" style="font-size: 1.15rem; margin-bottom: 12px; font-weight: 700;">提示</h3>
-      <p id="customDialogMessage" style="font-size: 0.95rem; color: var(--gray-700); margin-bottom: 20px; line-height: 1.5; white-space: pre-line;"></p>
-      <div class="btn-group" id="customDialogBtnGroup">
-        <button class="btn btn-gray" id="customDialogCancelBtn" type="button" style="padding: 10px;">取消</button>
-        <button class="btn btn-primary" id="customDialogConfirmBtn" type="button" style="padding: 10px;">確認</button>
+    <div class="card">
+      <!-- 身分驗證頁面 -->
+      <div id="loadingArea" style="display: none">
+        <div class="spinner"></div>
+        驗證中...
+      </div>
+
+      <!-- 登入Google帳號頁面 -->
+      <div id="loginArea">
+        <p class="login-title">請使用學校 Google 帳號登入</p>
+        <div id="g_id_signin"></div>
+      </div>
+
+      <!-- 外部帳號登入 -->
+      <div id="teacherAuthArea">
+        <h3>測試登入</h3>
+        <p>您的帳號不在學生名單中，請使用學校 Google帳號登入。</p>
+        <p>若欲測試本系統，請聯絡管理員協助建立測試用帳號與密碼。</p>
+        <div class="form-group">
+          <label>Email</label>
+          <input
+            type="text"
+            id="teacherEmail"
+            placeholder="請輸入電子郵件"
+            maxlength="100"
+            autocomplete="email"
+          />
+        </div>
+        <div class="form-group">
+          <label>密碼</label>
+          <input
+            type="password"
+            id="teacherPassword"
+            placeholder="請輸入測試密碼"
+            maxlength="100"
+            autocomplete="current-password"
+          />
+        </div>
+        <div class="form-group">
+          <label>社團</label>
+          <input
+            type="text"
+            id="testClub"
+            placeholder="需與現有社團名稱完全一致"
+            maxlength="30"
+          />
+        </div>
+        <div class="form-group">
+          <label>身分</label>
+          <select id="testIdentity">
+            <option value="幹部">幹部</option>
+            <option value="社員">社員</option>
+          </select>
+        </div>
+        <button
+          class="btn btn-primary"
+          id="teacherAuthBtn"
+          style="margin-top: 8px"
+        >
+          登入
+        </button>
       </div>
     </div>
-  </div>
+    <footer>
+      開發人員：社團點名系統維護小組<a
+        href="https://github.com/ckclubrollcall/ckclubrollcall"
+        target="_blank"
+        rel="noopener noreferrer"
+        ><i class="bi bi-github"></i></a
+      ><a
+        href="https://github.com/ckclubrollcall/ckclubrollcall/issues"
+        target="_blank"
+        rel="noopener noreferrer"
+        ><i class="bi bi-bug"></i
+      ></a>
+    </footer>
+
+    <!-- 自訂彈出式視窗 Dialog Modal -->
+    <div id="customDialog" class="modal-overlay">
+      <div class="modal-content" style="max-width: 400px; text-align: center">
+        <h3
+          id="customDialogTitle"
+          style="font-size: 1.15rem; margin-bottom: 12px; font-weight: 700"
+        >
+          提示
+        </h3>
+        <p
+          id="customDialogMessage"
+          style="
+            font-size: 0.95rem;
+            color: var(--gray-700);
+            margin-bottom: 20px;
+            line-height: 1.5;
+            white-space: pre-line;
+          "
+        ></p>
+        <div class="btn-group" id="customDialogBtnGroup">
+          <button
+            class="btn btn-gray"
+            id="customDialogCancelBtn"
+            type="button"
+            style="padding: 10px"
+          >
+            取消
+          </button>
+          <button
+            class="btn btn-primary"
+            id="customDialogConfirmBtn"
+            type="button"
+            style="padding: 10px"
+          >
+            確認
+          </button>
+        </div>
+      </div>
+    </div>
 
   <script src="config.js"></script>
   <script src="app.js"></script>
@@ -111,4 +182,11 @@
   <script id="googleGsiScript" src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 
+    <script
+      id="googleGsiScript"
+      src="https://accounts.google.com/gsi/client"
+      async
+      defer
+    ></script>
+  </body>
 </html>

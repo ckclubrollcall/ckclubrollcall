@@ -1,67 +1,132 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-TW">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>建中社團線上點名系統</title>
-  <link rel="icon" href="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E7%A4%BE.png">
-  <meta property="og:title" content="建中社團線上點名系統">
-  <meta property="og:description" content="請使用@gl.ck.tp.edu.tw帳號填寫">
-  <meta property="og:image"
-    content="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E9%A0%90%E8%A6%BD.png">
-  <meta property="og:type" content="website">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self';
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>建中社團線上點名系統</title>
+    <link
+      rel="icon"
+      href="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E7%A4%BE.png"
+    />
+    <meta property="og:title" content="建中社團線上點名系統" />
+    <meta property="og:description" content="請使用@gl.ck.tp.edu.tw帳號填寫" />
+    <meta
+      property="og:image"
+      content="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E9%A0%90%E8%A6%BD.png"
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self';
     script-src 'self' https://accounts.google.com https://apis.google.com;
     style-src 'self' 'unsafe-inline' https://accounts.google.com;
+    font-src 'self' https://cdn.jsdelivr.net;
     img-src 'self' https://raw.githubusercontent.com https://*.googleusercontent.com data:;
     connect-src https://script.google.com https://accounts.google.com https://script.googleusercontent.com/;
     frame-src https://accounts.google.com;
     base-uri 'self';
     object-src 'none';
-    form-action 'self';">
-  <link rel="stylesheet" href="style.css">
-</head>
-<body data-page="records">
-  <header id="siteHeader" style="cursor:pointer;">
-    <div class="logo">
-      <img src="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E6%A0%A1%E5%BE%BD.png"
-        style="width:38px;height:38px;object-fit:contain;" alt="建中校徽">
-    </div>
-    <div>
-      <h1>建中社團線上點名系統</h1>
-    </div>
-  </header>
-
-  <div class="card">
-    <div id="recordsArea">
-      <div id="recordsLoading" style="text-align:center;padding:32px 0;color:var(--gray-500);">
-        <div class="spinner"></div>
-        載入中…
+    form-action 'self';"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body data-page="records">
+    <header id="siteHeader" style="cursor: pointer">
+      <div class="logo">
+        <img
+          src="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E6%A0%A1%E5%BE%BD.png"
+          style="width: 38px; height: 38px; object-fit: contain"
+          alt="建中校徽"
+        />
       </div>
-      <div id="recordsList"></div>
-      <div id="recordDetailArea" style="display:none;"></div>
+      <div>
+        <h1>建中社團線上點名系統</h1>
+      </div>
+    </header>
 
-      <p style="text-align:center;margin-top:14px;display:none;" id="recordsBackLink">
-        <a href="#" id="recordsBackAnchor"
-          style="font-size:.78rem;color:var(--gray-500);text-decoration:underline;">
-          返回
-        </a>
-      </p>
-    </div>
-  </div>
+    <div class="card">
+      <div id="recordsArea">
+        <div
+          id="recordsLoading"
+          style="text-align: center; padding: 32px 0; color: var(--gray-500)"
+        >
+          <div class="spinner"></div>
+          載入中…
+        </div>
+        <div id="recordsList"></div>
+        <div id="recordDetailArea" style="display: none"></div>
 
-  <footer>開發人員：社團點名系統維護小組</footer>
-
-  <div id="customDialog" class="modal-overlay">
-    <div class="modal-content" style="max-width: 400px; text-align: center;">
-      <h3 id="customDialogTitle" style="font-size: 1.15rem; margin-bottom: 12px; font-weight: 700;">提示</h3>
-      <p id="customDialogMessage" style="font-size: 0.95rem; color: var(--gray-700); margin-bottom: 20px; line-height: 1.5; white-space: pre-line;"></p>
-      <div class="btn-group" id="customDialogBtnGroup">
-        <button class="btn btn-gray" id="customDialogCancelBtn" type="button" style="padding: 10px;">取消</button>
-        <button class="btn btn-primary" id="customDialogConfirmBtn" type="button" style="padding: 10px;">確認</button>
+        <p
+          style="text-align: center; margin-top: 14px; display: none"
+          id="recordsBackLink"
+        >
+          <a
+            href="#"
+            id="recordsBackAnchor"
+            style="
+              font-size: 0.78rem;
+              color: var(--gray-500);
+              text-decoration: underline;
+            "
+          >
+            返回
+          </a>
+        </p>
       </div>
     </div>
-  </div>
+
+    <footer>
+      開發人員：社團點名系統維護小組<a
+        href="https://github.com/ckclubrollcall/ckclubrollcall"
+        target="_blank"
+        rel="noopener noreferrer"
+        ><i class="bi bi-github"></i></a
+      ><a
+        href="https://github.com/ckclubrollcall/ckclubrollcall/issues"
+        target="_blank"
+        rel="noopener noreferrer"
+        ><i class="bi bi-bug"></i
+      ></a>
+    </footer>
+
+    <div id="customDialog" class="modal-overlay">
+      <div class="modal-content" style="max-width: 400px; text-align: center">
+        <h3
+          id="customDialogTitle"
+          style="font-size: 1.15rem; margin-bottom: 12px; font-weight: 700"
+        >
+          提示
+        </h3>
+        <p
+          id="customDialogMessage"
+          style="
+            font-size: 0.95rem;
+            color: var(--gray-700);
+            margin-bottom: 20px;
+            line-height: 1.5;
+            white-space: pre-line;
+          "
+        ></p>
+        <div class="btn-group" id="customDialogBtnGroup">
+          <button
+            class="btn btn-gray"
+            id="customDialogCancelBtn"
+            type="button"
+            style="padding: 10px"
+          >
+            取消
+          </button>
+          <button
+            class="btn btn-primary"
+            id="customDialogConfirmBtn"
+            type="button"
+            style="padding: 10px"
+          >
+            確認
+          </button>
+        </div>
+      </div>
+    </div>
 
     <script src="config.js"></script>
     <script src="app.js"></script>
