@@ -1192,3 +1192,39 @@ footer a:active {
         box-shadow: 0 0 0 4px rgba(10, 132, 255, .3);
     }
 }
+
+
+/* =========================================================
+   點名勾選動畫（由 roll-feedback.js 加上 pop-check / pop-uncheck）
+   ========================================================= */
+@keyframes check-pop {
+    0%   { transform: scale(.78); background-size: 0;    box-shadow: 0 0 0 0 rgba(52, 199, 89, .5); }
+    40%  { transform: scale(1.28); background-size: 20px; }
+    70%  { transform: scale(.98); }
+    100% { transform: scale(1.05); background-size: 16px; box-shadow: 0 0 0 10px rgba(52, 199, 89, 0); }
+}
+
+@keyframes check-release {
+    0%   { transform: scale(.82); }
+    100% { transform: scale(1); }
+}
+
+.student-item input[type="checkbox"].pop-check:checked {
+    animation: check-pop .42s cubic-bezier(.2, .8, .3, 1) both;
+}
+
+.student-item input[type="checkbox"].pop-uncheck {
+    animation: check-release .22s var(--ease);
+}
+
+/* 整列背景也快速閃一下綠色，增加「勾起來」的感覺 */
+.student-item.present {
+    transition: background-color .12s var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .student-item input[type="checkbox"].pop-check:checked,
+    .student-item input[type="checkbox"].pop-uncheck {
+        animation: none;
+    }
+}
