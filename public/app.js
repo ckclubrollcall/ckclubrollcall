@@ -798,6 +798,8 @@ async function submitForm() {
     const descEl = document.getElementById('desc');
     const desc = descEl.value.trim();
 
+    hasSigned = !!(canvas && ctx && !isCanvasBlank(canvas));
+
     // 防呆驗證：必須輸入社課大綱與老師簽名
     if (!desc) { await showAlert('錯誤: 請填寫社課內容簡述！'); return; }
     if (desc.length > MAX_DESC_LEN) { await showAlert(`錯誤: 社課內容不可超過 ${MAX_DESC_LEN} 字！`); return; }
@@ -1127,6 +1129,13 @@ function initCanvas() {
     canvas.addEventListener('touchstart', start, { passive: false });
     canvas.addEventListener('touchmove', draw, { passive: false });
     canvas.addEventListener('touchend', stop);
+}
+
+function isCanvasBlank(c) {
+    const blank = document.createElement('canvas');
+    blank.width = c.width;
+    blank.height = c.height;
+    return c.toDataURL() === blank.toDataURL();
 }
 
 /**
