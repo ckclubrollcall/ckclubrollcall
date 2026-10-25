@@ -1,3 +1,8 @@
+/* =========================================================
+   建中社團線上點名系統 — iOS 簡約毛玻璃風格
+   設計原則：以白色為底、僅使用 iOS 系統色、按壓有彈性回饋
+   ========================================================= */
+
 *,
 *::before,
 *::after {
@@ -7,47 +12,124 @@
 }
 
 :root {
-    --green: #7a9eb5;
-    --green-lt: #edf2f6;
-    --blue: #5b7e96;
-    --blue-lt: #e8eff4;
-    --red: #b07a7a;
-    --red-lt: #f5eded;
-    --gray-50: #f5f7f9;
-    --gray-100: #eaeff3;
-    --gray-300: #c8d4dc;
-    --gray-500: #8fa5b5;
-    --gray-700: #5c7285;
-    --gray-900: #2c3e4a;
-    --radius: 8px;
-    --shadow: 0 2px 12px rgba(91, 126, 150, .13);
+    color-scheme: light;
+
+    /* iOS 系統色（保留舊變數名稱，app.js 內聯樣式仍會引用） */
+    --blue: #007aff;
+    --blue-lt: rgba(0, 122, 255, .10);
+    --green: #34c759;
+    --green-lt: rgba(52, 199, 89, .12);
+    --red: #ff3b30;
+    --red-lt: rgba(255, 59, 48, .10);
+    --orange: #ff9500;
+
+    /* 灰階（iOS Label / Fill 系統） */
+    --gray-50: #f9f9fb;
+    --gray-100: rgba(120, 120, 128, .12);   /* 輸入框填色 */
+    --gray-300: rgba(60, 60, 67, .18);      /* 分隔線 */
+    --gray-500: #8e8e93;                    /* 次要文字 */
+    --gray-700: #636366;
+    --gray-900: #1c1c1e;                    /* 主要文字 */
+
+    /* 毛玻璃 */
+    --glass: rgba(255, 255, 255, .72);
+    --glass-strong: rgba(255, 255, 255, .86);
+    --glass-border: rgba(255, 255, 255, .85);
+    --hairline: rgba(60, 60, 67, .12);
+    --blur: blur(28px) saturate(180%);
+
+    --radius: 14px;
+    --radius-lg: 28px;
+    --shadow: 0 8px 32px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .04);
+
+    /* 彈性動畫曲線（近似 iOS spring） */
+    --spring: cubic-bezier(.2, .9, .3, 1.25);
+    --ease: cubic-bezier(.25, .1, .25, 1);
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
-    font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-    background: var(--gray-50);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang TC',
+        'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: #fff;
     color: var(--gray-900);
     min-height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 24px 16px 48px;
+    padding:
+        max(12px, env(safe-area-inset-top))
+        max(16px, env(safe-area-inset-right))
+        max(40px, env(safe-area-inset-bottom))
+        max(16px, env(safe-area-inset-left));
+    touch-action: manipulation;
 }
 
-/* 標題樣式 */
+/* 背景：極淡色暈，讓毛玻璃有可折射的層次（不需要可整段刪除，即為純白） */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(60% 40% at 15% 0%, rgba(0, 122, 255, .08), transparent 70%),
+        radial-gradient(50% 35% at 100% 20%, rgba(175, 82, 222, .06), transparent 70%),
+        radial-gradient(60% 40% at 50% 100%, rgba(52, 199, 89, .06), transparent 70%),
+        #fff;
+}
+
+/* ---------- 共用：按壓回饋 ---------- */
+button,
+.student-item,
+.record-item,
+header,
+a {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+/* ---------- 標題列（懸浮毛玻璃膠囊） ---------- */
 header {
-    width: 100%;
-    max-width: 640px;
+    position: sticky;
+    top: max(8px, env(safe-area-inset-top));
+    z-index: 20;
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 24px;
     justify-content: center;
+    gap: 10px;
+    max-width: 100%;
+    padding: 8px 20px 8px 12px;
+    margin-bottom: 16px;
+    background: var(--glass);
+    -webkit-backdrop-filter: var(--blur);
+    backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 999px;
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, .9);
+    transition: transform .4s var(--spring), opacity .3s var(--ease);
+}
+
+header:active {
+    transform: scale(.97);
+    opacity: .8;
+    transition-duration: .08s;
+}
+
+header .logo {
+    display: flex;
 }
 
 header h1 {
-    font-size: 1.3rem;
-    font-weight: 700;
+    font-size: 1.02rem;
+    font-weight: 600;
+    letter-spacing: .01em;
     color: var(--gray-900);
     line-height: 1.3;
 }
@@ -58,22 +140,24 @@ header p {
     margin-top: 2px;
 }
 
-/* 題目樣式 */
+/* ---------- 主卡片 ---------- */
 .card {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    padding: 28px 24px;
+    background: var(--glass);
+    -webkit-backdrop-filter: var(--blur);
+    backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, .9);
+    padding: 24px 20px;
     width: 100%;
     max-width: 640px;
-
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
 
-/* 身分驗證頁面 */
+/* ---------- 身分驗證 ---------- */
 #loadingArea {
     text-align: center;
     padding: 48px 0;
@@ -82,22 +166,20 @@ header p {
 }
 
 .spinner {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border: 3px solid var(--gray-300);
-    border-top-color: var(--green);
+    border-top-color: var(--gray-500);
     border-radius: 50%;
     animation: spin .8s linear infinite;
     margin: 0 auto 14px;
 }
 
 @keyframes spin {
-    to {
-    transform: rotate(360deg);
-    }
+    to { transform: rotate(360deg); }
 }
 
-/* Google登入按鈕 */
+/* ---------- Google 登入 ---------- */
 #loginArea {
     display: none;
     text-align: center;
@@ -105,9 +187,10 @@ header p {
 }
 
 #loginArea .login-title {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: 600;
-    margin-bottom: 6px;
+    margin-bottom: 20px;
+    letter-spacing: .01em;
 }
 
 #loginArea .login-sub {
@@ -120,29 +203,31 @@ header p {
     display: inline-block;
 }
 
-/* 外部登入頁面 */
+/* ---------- 測試登入 ---------- */
 #teacherAuthArea {
     display: none;
-    border: 2px dashed var(--blue);
-    border-radius: var(--radius);
+    background: rgba(255, 255, 255, .6);
+    border: 1px solid var(--hairline);
+    border-radius: 20px;
     padding: 20px;
     margin-top: 16px;
-    background: var(--blue-lt);
 }
 
 #teacherAuthArea h3 {
-    color: var(--blue);
-    font-size: 1rem;
+    color: var(--gray-900);
+    font-size: 1.05rem;
+    font-weight: 600;
     margin-bottom: 8px;
 }
 
 #teacherAuthArea p {
     font-size: .85rem;
-    color: var(--gray-700);
-    margin-bottom: 16px;
+    color: var(--gray-500);
+    line-height: 1.5;
+    margin-bottom: 12px;
 }
 
-/* 表單頁面 */
+/* ---------- 表單 ---------- */
 #formArea {
     display: none;
 }
@@ -154,15 +239,16 @@ header p {
 .form-group label {
     display: block;
     font-weight: 600;
-    font-size: .9rem;
-    color: var(--gray-700);
-    margin-bottom: 6px;
+    font-size: .85rem;
+    color: var(--gray-500);
+    margin: 0 0 6px 4px;
 }
 
 .form-group .hint {
+    display: block;
     font-size: .78rem;
     color: var(--gray-500);
-    margin-bottom: 5px;
+    margin: 0 0 6px 4px;
 }
 
 input[type="text"],
@@ -171,115 +257,188 @@ input[type="date"],
 select,
 textarea {
     width: 100%;
-    padding: 10px 12px;
-    border: 1.5px solid var(--gray-300);
+    min-height: 46px;
+    padding: 12px 14px;
+    border: 1.5px solid transparent;
     border-radius: var(--radius);
-    font-size: .95rem;
+    /* 16px 以上可避免 iOS Safari 聚焦時自動放大 */
+    font-size: 16px;
     font-family: inherit;
     color: var(--gray-900);
-    background: #fff;
-    transition: border-color .2s;
-    appearance: auto;
+    background: var(--gray-100);
+    transition: background-color .2s var(--ease), border-color .2s var(--ease), box-shadow .2s var(--ease);
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: rgba(60, 60, 67, .3);
 }
 
 input:focus,
 select:focus,
 textarea:focus {
     outline: none;
-    border-color: var(--green);
-    box-shadow: 0 0 0 3px rgba(26, 127, 75, .15);
+    background: #fff;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 4px rgba(0, 122, 255, .18);
 }
 
 input[readonly],
 input[disabled] {
     background: var(--gray-100);
-    color: var(--gray-700);
-    cursor: not-allowed;
-    border-color: var(--gray-300);
+    color: var(--gray-500);
+    cursor: default;
+}
+
+input[readonly]:focus {
+    background: var(--gray-100);
+    border-color: transparent;
+    box-shadow: none;
+}
+
+/* 下拉選單：iOS 風格箭頭 */
+select {
+    padding-right: 40px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='16' viewBox='0 0 12 16' fill='none' stroke='%238e8e93' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6L6 2.5 9.5 6M2.5 10L6 13.5 9.5 10'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+}
+
+/* iOS 日期欄位修正 */
+input[type="date"] {
+    display: block;
+    text-align: left;
+}
+
+input[type="date"]::-webkit-date-and-time-value {
+    text-align: left;
 }
 
 textarea {
-    height: 88px;
-    resize: vertical;
+    height: 96px;
+    resize: none;
+    line-height: 1.5;
 }
 
-/* 點名表 */
+/* ---------- 點名表（inset grouped list） ---------- */
 #studentList {
-    border: 1.5px solid var(--gray-300);
-    border-radius: var(--radius);
+    background: rgba(255, 255, 255, .7);
+    border: 1px solid var(--hairline);
+    border-radius: 18px;
     max-height: 380px;
     overflow-y: auto;
-    background: #fff;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
 
 .student-item {
+    position: relative;
     display: flex;
     align-items: center;
-    padding: 11px 14px;
-    border-bottom: 1px dashed var(--gray-300);
-    font-size: .95rem;
+    min-height: 50px;
+    font-size: 1rem;
     cursor: pointer;
-    transition: background .2s, color .2s;
-    background: var(--red-lt);
-    color: var(--red);
+    color: var(--gray-900);
+    background: transparent;
+    transition: background-color .25s var(--ease), transform .35s var(--spring);
 }
 
-.student-item:last-child {
-    border-bottom: none;
+/* 分隔線（縮排，與 iOS 清單一致） */
+.student-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 52px;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: var(--hairline);
+}
+
+.student-item:active {
+    background: rgba(120, 120, 128, .12);
+    transition-duration: .06s;
 }
 
 .student-item.present {
     background: var(--green-lt);
-    color: var(--green);
 }
 
+/* iOS 圓形勾選 */
 .student-item input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    margin-right: 12px;
-    accent-color: var(--green);
-    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    margin: 0 0 0 16px;
     flex-shrink: 0;
+    border: 1.5px solid rgba(60, 60, 67, .3);
+    border-radius: 50%;
+    background: transparent center / 16px no-repeat;
+    cursor: pointer;
+    transition: background-color .2s var(--ease), border-color .2s var(--ease), transform .35s var(--spring);
 }
 
+.student-item input[type="checkbox"]:checked {
+    background-color: var(--green);
+    border-color: var(--green);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+    transform: scale(1.05);
+}
+
+.student-item input[type="checkbox"]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(0, 122, 255, .25);
+}
+
+/* label 撐滿整列，擴大點擊範圍 */
 .student-item label {
     cursor: pointer;
     flex: 1;
+    padding: 14px 16px 14px 12px;
+    margin: 0;
 }
 
-/* 點擊簽名 */
+/* ---------- 簽名 ---------- */
 #sigOpenBtn {
-    background: var(--gray-100);
-    border: 1.5px solid var(--gray-300);
-    color: var(--gray-700);
-    border-radius: var(--radius);
-    padding: 10px;
-    font-size: .95rem;
-    font-weight: 600;
     width: 100%;
+    min-height: 50px;
+    background: var(--blue-lt);
+    border: none;
+    color: var(--blue);
+    border-radius: 999px;
+    padding: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: inherit;
     cursor: pointer;
-    transition: background .2s;
+    transition: transform .4s var(--spring), opacity .25s var(--ease), background-color .2s;
 }
 
-#sigOpenBtn:hover {
-    background: var(--gray-300);
+#sigOpenBtn:active {
+    transform: scale(.96);
+    opacity: .7;
+    transition-duration: .08s;
 }
 
 #sigStatus {
     display: none;
-    color: var(--green);
+    color: #248a3d;
     font-weight: 600;
     font-size: .9rem;
     text-align: center;
     margin-top: 10px;
 }
 
-/* 簽名面板 */
+/* ---------- Modal / 簽名面板 ---------- */
 .modal-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, .55);
+    background: rgba(0, 0, 0, .25);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
     z-index: 999;
     justify-content: center;
     align-items: center;
@@ -288,19 +447,38 @@ textarea {
 
 .modal-overlay.open {
     display: flex;
+    animation: fadeIn .25s var(--ease);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .modal-content {
-    background: #fff;
-    border-radius: 14px;
+    background: var(--glass-strong);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
     padding: 24px 20px 20px;
     width: 100%;
     max-width: 520px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, .18);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .18), inset 0 1px 0 rgba(255, 255, 255, .9);
+}
+
+.modal-overlay.open .modal-content {
+    animation: modalReveal .4s var(--spring) both;
+}
+
+@keyframes modalReveal {
+    from { opacity: 0; transform: scale(.9); }
+    to { opacity: 1; transform: scale(1); }
 }
 
 .modal-content h3 {
-    font-size: 1.05rem;
+    font-size: 1.1rem;
+    font-weight: 600;
     text-align: center;
     margin-bottom: 14px;
     color: var(--gray-900);
@@ -309,8 +487,8 @@ textarea {
 #sigCanvas {
     width: 100%;
     height: 260px;
-    border: 1.5px solid var(--gray-300);
-    border-radius: var(--radius);
+    border: 1px solid var(--hairline);
+    border-radius: 18px;
     background: #fff;
     cursor: crosshair;
     touch-action: none;
@@ -327,64 +505,80 @@ textarea {
     flex: 1;
 }
 
-/* 按鈕 */
+/* ---------- 按鈕 ---------- */
 .btn {
     display: block;
     width: 100%;
-    padding: 13px;
+    min-height: 50px;
+    padding: 13px 16px;
     border: none;
-    border-radius: var(--radius);
-    font-size: 1rem;
-    font-weight: 700;
+    border-radius: 999px;
+    font-size: 1.02rem;
+    font-weight: 600;
+    letter-spacing: .01em;
     cursor: pointer;
-    transition: opacity .2s, transform .1s;
     font-family: inherit;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: transform .4s var(--spring), opacity .25s var(--ease), background-color .2s var(--ease);
 }
 
+/* 按下：快速縮小 + 變淡；放開：彈性回彈 */
 .btn:active {
-    transform: scale(.98);
+    transform: scale(.96);
+    opacity: .72;
+    transition-duration: .08s;
 }
 
 .btn:disabled {
-    opacity: .55;
+    opacity: .4;
     cursor: not-allowed;
+    transform: none;
 }
 
-.btn-primary {
+.btn:focus-visible,
+#sigOpenBtn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(0, 122, 255, .3);
+}
+
+/* 主要：實心藍 */
+.btn-primary,
+.btn-submit {
     background: var(--blue);
     color: #fff;
 }
 
+.btn-submit {
+    margin-top: 6px;
+}
+
+/* 確認：實心綠 */
 .btn-green {
     background: var(--green);
     color: #fff;
 }
 
+/* 破壞性：淡紅底紅字（iOS tinted） */
 .btn-red {
-    background: var(--red);
-    color: #fff;
+    background: var(--red-lt);
+    color: var(--red);
 }
 
+/* 次要：淡灰底 */
 .btn-gray {
-    background: var(--gray-500);
-    color: #fff;
+    background: rgba(120, 120, 128, .16);
+    color: var(--gray-900);
 }
 
-.btn-submit {
-    background: var(--blue);
-    color: #fff;
-    margin-top: 6px;
-    font-size: 1.05rem;
-}
-
-/* 分隔線 */
+/* ---------- 分隔線 ---------- */
 .divider {
     border: none;
-    border-top: 1px solid var(--gray-300);
+    border-top: 1px solid var(--hairline);
     margin: 20px 0;
 }
 
-/* 開發人員 */
+/* ---------- 頁尾 ---------- */
 footer {
     margin-top: 24px;
     font-size: .78rem;
@@ -392,26 +586,64 @@ footer {
     text-align: center;
 }
 
-/* 記錄列表 */
+footer a {
+    color: var(--gray-500);
+    margin-left: 10px;
+    font-size: .95rem;
+    vertical-align: middle;
+    text-decoration: none;
+    transition: opacity .2s;
+}
+
+footer a:active {
+    opacity: .5;
+}
+
+/* 文字連結（返回／登出） */
+.card a[href="#"] {
+    color: var(--blue) !important;
+    text-decoration: none !important;
+    font-size: .9rem !important;
+    display: inline-block;
+    padding: 10px 16px;
+    transition: opacity .2s;
+}
+
+.card a[href="#"]:active {
+    opacity: .4;
+    transition-duration: .06s;
+}
+
+/* ---------- 記錄列表 ---------- */
+#recordsList {
+    background: rgba(255, 255, 255, .7);
+    border: 1px solid var(--hairline);
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+#recordsList:empty {
+    display: none;
+}
+
 .record-item {
-    padding: 12px 14px;
-    border-radius: var(--radius);
-    border: 1.5px solid var(--gray-100);
-    background: var(--gray-50);
-    margin-bottom: 8px;
-    font-size: .93rem;
+    position: relative;
+    min-height: 52px;
+    padding: 14px 40px 14px 16px;
+    background: transparent;
+    font-size: 1rem;
     color: var(--gray-900);
     cursor: pointer;
-    transition: background .15s, border-color .15s;
+    transition: background-color .25s var(--ease);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .record-item::before {
     content: '';
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     flex-shrink: 0;
     background-image: url('https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E5%96%AE%E7%AD%86%E7%B4%80%E9%8C%84.png');
     background-size: contain;
@@ -419,114 +651,121 @@ footer {
     background-position: center;
 }
 
-.record-item:hover {
-    background: var(--blue-lt);
-    border-color: var(--blue);
+/* 右側箭頭 */
+.record-item::after {
+    content: '';
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    width: 8px;
+    height: 14px;
+    transform: translateY(-50%);
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 14' fill='none' stroke='%23c7c7cc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1l6 6-6 6'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* 項目間分隔線 */
+.record-item:not(:last-child) {
+    box-shadow: inset 0 -1px 0 var(--hairline);
+}
+
+.record-item:active {
+    background: rgba(120, 120, 128, .12);
+    transition-duration: .06s;
+}
+
+@media (hover: hover) {
+    .record-item:hover { background: rgba(120, 120, 128, .07); }
+    .student-item:hover:not(.present) { background: rgba(120, 120, 128, .05); }
 }
 
 #recordDetailArea {
-    font-size: .93rem;
+    font-size: .95rem;
 }
 
-/* 主選單滿版與彈性佈局（最終隱藏安全版） */
+/* ---------- 主選單 ---------- */
 #menuArea {
-    display: none; /* 預設徹底隱藏，避免閃爍 */
-    flex: 1;       /* 顯示時自動撐滿 card 剩餘的高度 */
+    display: none;
+    flex: 1;
     width: 100%;
     flex-direction: column;
 }
 
-/* 主選單左右按鈕外層容器 */
 .menu-btn-row {
     display: flex;
     flex-direction: column;
-    gap: 16px; 
-    flex: 1;       /* 讓外層容器自動吞下所有剩餘的彈性空間 */
-    margin-top: 0; 
+    gap: 14px;
+    flex: 1;
+    margin-top: 0;
 }
 
-/* 開始點名按鈕（綠色系淡化虛線框） */
-.btn-menu-green {
-    background: rgba(128, 161, 144, 0.08); 
-    color: #4e6659;                        
-    border: 2px dashed #80a190;             
-    box-shadow: none;
-    flex: 1;                               /* 兩個按鈕平分高度 */
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border-radius: 12px;
-    line-height: 1.4;
-    cursor: pointer;
-    font-family: inherit;
-    transition: background-color 0.2s, transform 0.1s;
-}
-
-/* 查詢紀錄按鈕（藍色系淡化虛線框） */
+/* 兩顆主選單按鈕：白色玻璃磚 */
+.btn-menu-green,
 .btn-menu-blue {
-    background: rgba(123, 139, 172, 0.08); 
-    color: #4b5873;                        
-    border: 2px dashed #7b8bac;             
-    box-shadow: none;
-    flex: 1;                               /* 兩個按鈕平分高度 */
-    padding: 16px;
+    background: rgba(255, 255, 255, .75);
+    color: var(--gray-900);
+    border: 1px solid var(--hairline);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .04), inset 0 1px 0 rgba(255, 255, 255, .95);
+    flex: 1;
+    min-height: 120px;
+    padding: 20px 16px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    border-radius: 12px;
+    border-radius: 26px;
     line-height: 1.4;
     cursor: pointer;
     font-family: inherit;
-    transition: background-color 0.2s, transform 0.1s;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: transform .45s var(--spring), opacity .25s var(--ease), background-color .2s var(--ease);
 }
 
-/* 滑鼠懸停與點擊效果 */
-.btn-menu-green:hover { background: rgba(128, 161, 144, 0.15); }
-.btn-menu-blue:hover { background: rgba(123, 139, 172, 0.15); }
-
-.btn-menu-green:active, .btn-menu-blue:active {
-    transform: scale(0.99); 
+.btn-menu-green:active,
+.btn-menu-blue:active {
+    transform: scale(.965);
+    background: rgba(240, 240, 245, .9);
+    transition-duration: .08s;
 }
 
-/* 當非幹部登入隱藏點名按鈕時，讓查詢紀錄單獨撐滿 100% 高度 */
+@media (hover: hover) {
+    .btn-menu-green:hover,
+    .btn-menu-blue:hover { background: rgba(255, 255, 255, .95); }
+}
+
+/* 非幹部登入隱藏點名按鈕時，查詢紀錄撐滿 */
 .btn-menu-green[style*="none"] + .btn-menu-blue {
     height: 100%;
 }
 
-/* 按鈕標題字體 */
 .menu-btn-title {
-    font-size: 1.3rem;
-    font-weight: 700;
+    font-size: 1.25rem;
+    font-weight: 600;
     line-height: 1;
 }
 
-/* 按鈕備註字體 */
 .menu-btn-desc {
-    font-size: 0.85rem;
-    color: var(--gray-700);
+    font-size: .85rem;
+    color: var(--gray-500);
     font-weight: 400;
 }
 
-/* 點名詳細資訊卡 */
+/* ---------- 詳細資料（grouped list） ---------- */
 .detail-card {
-    background: #fff;
-    border-radius: var(--radius);
-    border: 1.5px solid var(--gray-100);
+    background: rgba(255, 255, 255, .7);
+    border-radius: 18px;
+    border: 1px solid var(--hairline);
     overflow: hidden;
     margin-bottom: 4px;
 }
 
 .detail-row {
     display: flex;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--gray-100);
-    font-size: .92rem;
-    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--hairline);
+    font-size: .95rem;
+    gap: 12px;
     align-items: flex-start;
 }
 
@@ -534,25 +773,24 @@ footer {
 
 .detail-label {
     color: var(--gray-500);
-    font-size: .82rem;
-    font-weight: 600;
+    font-size: .85rem;
+    font-weight: 500;
     min-width: 72px;
-    padding-top: 1px;
+    padding-top: 2px;
     flex-shrink: 0;
 }
 
 .detail-row-absent {
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 }
 
 .absent-box {
     white-space: pre-wrap;
-    background: #fff;
-    border: 1.5px dashed var(--gray-300);
-    border-radius: var(--radius);
+    background: var(--gray-100);
+    border-radius: 12px;
     padding: 10px 12px;
-    font-size: .9rem;
+    font-size: .92rem;
     color: var(--gray-700);
     line-height: 1.7;
 }
@@ -561,21 +799,22 @@ footer {
     font-size: .75rem;
     color: var(--gray-500);
     text-align: right;
-    margin-top: 3px;
+    margin: 4px 4px 0 0;
 }
 
 .char-counter.warn {
-    color: var(--red);
+    color: var(--orange);
     font-weight: 600;
 }
 
-/* 送出中遮罩層 */
+/* ---------- 送出中遮罩 ---------- */
 .submit-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(44, 62, 74, .45);
-    backdrop-filter: blur(1px);
+    background: rgba(0, 0, 0, .25);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
     z-index: 950;
     justify-content: center;
     align-items: center;
@@ -584,14 +823,18 @@ footer {
 
 .submit-overlay.open {
     display: flex;
+    animation: fadeIn .25s var(--ease);
 }
 
 .submit-overlay-box {
-    background: rgba(255, 255, 255, .96);
-    border-radius: 14px;
+    background: var(--glass-strong);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
     padding: 28px 32px;
     text-align: center;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, .25);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .18);
     max-width: 320px;
 }
 
@@ -601,27 +844,40 @@ footer {
 
 .submit-overlay-box p {
     font-size: .95rem;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--gray-900);
     line-height: 1.5;
 }
 
-/* 自訂對話框樣式 */
+/* ---------- 提示對話框（iOS Alert） ---------- */
 #customDialog .modal-content {
-    max-width: 400px;
+    max-width: 340px;
     text-align: center;
-    border: 1px solid var(--gray-300);
-    box-shadow: 0 10px 25px rgba(44, 62, 74, 0.15);
-    animation: modalReveal 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    border-radius: 26px;
 }
 
-@keyframes modalReveal {
-    from {
-        opacity: 0;
-        transform: scale(0.93);
+/* ---------- 不支援毛玻璃時的備援 ---------- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    header,
+    .card,
+    .modal-content,
+    .submit-overlay-box {
+        background: rgba(255, 255, 255, .97);
     }
-    to {
-        opacity: 1;
-        transform: scale(1);
+}
+
+/* ---------- 減少動態效果 ---------- */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
     }
+}
+
+/* ---------- 小螢幕微調 ---------- */
+@media (max-width: 380px) {
+    .card { padding: 20px 14px; }
+    header h1 { font-size: .95rem; }
 }
