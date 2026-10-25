@@ -22,7 +22,7 @@
     --red: #ff3b30;
     --red-lt: rgba(255, 59, 48, .10);
     --orange: #ff9500;
-    --ios-dark-gray: #48484a;   /* iOS systemGray3 (dark) */
+    --ios-dark-gray: rgba(120, 120, 128, .2);   /* 比輸入框(.12)略深的 iOS 灰 */
 
     /* 灰階（iOS Label / Fill 系統） */
     --gray-50: #f9f9fb;
@@ -446,7 +446,7 @@ body[data-page="form"] .card::before {
     min-height: 50px;
     background: var(--ios-dark-gray);
     border: none;
-    color: #fff;
+    color: var(--gray-900);
     border-radius: 999px;
     padding: 12px;
     font-size: 1rem;
@@ -631,7 +631,7 @@ body.scroll-locked {
 #sigOpenBtn:focus-visible,
 #rollOpenBtn:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 4px rgba(72, 72, 74, .3);
+    box-shadow: 0 0 0 4px rgba(120, 120, 128, .3);
 }
 
 /* 主要：實心藍 */
