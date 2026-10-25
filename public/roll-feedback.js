@@ -39,22 +39,30 @@
     cb.classList.remove('pop-check', 'pop-uncheck');
     void cb.offsetWidth; // 重新觸發動畫
     cb.classList.add(cls);
-    cb.addEventListener('animationend', function done() {
+    var cleaned = false;
+    function done() {
+      if (cleaned) return;
+      cleaned = true;
       cb.classList.remove(cls);
       cb.removeEventListener('animationend', done);
-    });
+    }
+    cb.addEventListener('animationend', done);
+    // 保險：使用者開了「減少動態效果」時 animation 為 none，animationend 不會觸發
+    setTimeout(done, 600);
   }
 
   // ---------- onclick：點整列（含 label）都會觸發 ----------
-  var last = 0;
+  var lastRow = null, lastTime = 0;
   list.addEventListener('click', function (e) {
     var row = e.target.closest && e.target.closest('.student-item');
     if (!row) return;
 
-    // 點 label 時會連帶產生一次對 checkbox 的 click，50ms 內只處理一次
+    // 點 label 時會連帶產生一次對 checkbox 的 click，同一列 80ms 內只處理一次
+    // （改成「依列」判斷，快速連點不同學生不會被漏掉）
     var now = Date.now();
-    if (now - last < 50) return;
-    last = now;
+    if (row === lastRow && now - lastTime < 80) return;
+    lastRow = row;
+    lastTime = now;
 
     iosHaptic(); // iOS：同步觸發（需在點擊手勢內）
 

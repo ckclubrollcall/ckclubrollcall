@@ -8,10 +8,6 @@
       rel="icon"
       href="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E7%A4%BE.png"
     />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.2/font/bootstrap-icons.min.css"
-    />
     <meta property="og:title" content="建中社團線上點名系統" />
     <meta property="og:description" content="請使用@gl.ck.tp.edu.tw帳號填寫" />
     <meta
@@ -123,6 +119,8 @@
           返回
         </a>
       </p>
+      </div><!-- /#formArea -->
+    </div><!-- /.card -->
 
       <!-- 彈出視窗（放在卡片外，避免被卡片的樣式影響 fixed 定位） -->
       <div id="sigModal" class="modal-overlay">
@@ -144,6 +142,7 @@
             <div class="option-item" data-value="否" role="button" tabindex="0">否</div>
           </div>
         </div>
+      </div>
 
       <div id="rollModal" class="modal-overlay">
         <div class="modal-content roll-modal">
@@ -156,22 +155,7 @@
             <button class="btn btn-green" id="rollCloseBtn" type="button">完成</button>
           </div>
         </div>
-        <button class="btn btn-submit" id="submitBtn">確認送出</button>
-        <p style="text-align: center; margin-top: 10px">
-          <a
-            href="#"
-            id="formFooterLink"
-            style="
-              font-size: 0.78rem;
-              color: var(--gray-500);
-              text-decoration: underline;
-            "
-          >
-            返回
-          </a>
-        </p>
       </div>
-    </div>
 
     <footer>開發人員：社團點名系統維護小組</footer>
 
