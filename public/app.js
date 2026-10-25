@@ -764,6 +764,8 @@ function updateCount() {
     const total = allStudents.length;
     const present = document.querySelectorAll('.student-cb:checked').length;
     document.getElementById('attendCount').textContent = `（出席 ${present} / ${total} 人）`;
+    const modalCount = document.getElementById('attendCountModal');
+    if (modalCount) modalCount.textContent = `出席 ${present} / ${total} 人`;
 }
 
 /**
@@ -1128,6 +1130,46 @@ function initCanvas() {
 }
 
 /**
+ * 開啟／關閉點名表視窗（勾選狀態即時存入草稿，關閉時無需額外處理）
+ */
+function openRollModal() {
+    const m = document.getElementById('rollModal');
+    if (m) m.classList.add('open');
+}
+
+function closeRollModal() {
+    const m = document.getElementById('rollModal');
+    if (m) m.classList.remove('open');
+}
+
+/**
+ * 視窗開啟時鎖定背景捲動（iOS Safari 需用 position:fixed 才能真正鎖住）
+ * 以 MutationObserver 監聽所有遮罩的 open 狀態，不必逐一修改各視窗的開關函式
+ */
+function initScrollLock() {
+    let savedY = 0;
+    let locked = false;
+    const update = () => {
+        const anyOpen = document.querySelector('.modal-overlay.open, .submit-overlay.open');
+        if (anyOpen && !locked) {
+            savedY = window.scrollY;
+            document.body.style.top = `-${savedY}px`;
+            document.body.classList.add('scroll-locked');
+            locked = true;
+        } else if (!anyOpen && locked) {
+            document.body.classList.remove('scroll-locked');
+            document.body.style.top = '';
+            window.scrollTo(0, savedY);
+            locked = false;
+        }
+    };
+    const observer = new MutationObserver(update);
+    document.querySelectorAll('.modal-overlay, .submit-overlay').forEach(el => {
+        observer.observe(el, { attributes: true, attributeFilter: ['class'] });
+    });
+}
+
+/**
  * 打開老師手寫簽名板視窗 (Modal Overlay)
  */
 function openSigModal() {
@@ -1392,6 +1434,18 @@ function bindUiEvents() {
     bindClick('sigOpenBtn', openSigModal);
     bindClick('sigClearBtn', clearCanvas);
     bindClick('sigCloseBtn', closeSigModal);
+    bindClick('rollOpenBtn', openRollModal);
+    bindClick('rollCloseBtn', closeRollModal);
+
+    // 點擊點名視窗外的遮罩也可關閉（勾選內容已即時儲存）
+    const rollModal = document.getElementById('rollModal');
+    if (rollModal) {
+        rollModal.addEventListener('click', function (e) {
+            if (e.target === rollModal) closeRollModal();
+        });
+    }
+
+    initScrollLock();
     bindClick('recordsBackAnchor', () => navigateTo('menu.html'));
 
     const dateInput = document.getElementById('date');
