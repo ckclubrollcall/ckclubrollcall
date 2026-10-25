@@ -96,8 +96,19 @@
 
       <div class="form-group">
         <label>點名區 <span id="attendCount" style="font-weight:400;color:var(--gray-500);font-size:.85rem;"></span></label>
-        <div id="studentList" style="text-align:left;padding:24px;color:var(--gray-500);">
-          <div class="spinner" style="margin:0 auto 10px;"></div>載入中…
+        <button id="rollOpenBtn" type="button">點擊開啟點名表</button>
+      </div>
+
+      <div id="rollModal" class="modal-overlay">
+        <div class="modal-content roll-modal">
+          <h3>點名</h3>
+          <div class="roll-count" id="attendCountModal"></div>
+          <div id="studentList" style="text-align:left;padding:24px;color:var(--gray-500);">
+            <div class="spinner" style="margin:0 auto 10px;"></div>載入中…
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-green" id="rollCloseBtn" type="button">完成</button>
+          </div>
         </div>
       </div>
 

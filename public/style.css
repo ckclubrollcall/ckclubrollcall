@@ -95,30 +95,21 @@ a {
     -webkit-touch-callout: none;
 }
 
-/* ---------- 標題列（懸浮毛玻璃膠囊） ---------- */
+/* ---------- 標題列（一般置頂，不浮動） ---------- */
 header {
-    position: sticky;
-    top: max(8px, env(safe-area-inset-top));
-    z-index: 20;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
     max-width: 100%;
-    padding: 8px 20px 8px 12px;
+    padding: 6px 8px;
     margin-bottom: 16px;
-    background: var(--glass);
-    -webkit-backdrop-filter: var(--blur);
-    backdrop-filter: var(--blur);
-    border: 1px solid var(--glass-border);
-    border-radius: 999px;
-    box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, .9);
     transition: transform .4s var(--spring), opacity .3s var(--ease);
 }
 
 header:active {
     transform: scale(.97);
-    opacity: .8;
+    opacity: .6;
     transition-duration: .08s;
 }
 
@@ -127,7 +118,7 @@ header .logo {
 }
 
 header h1 {
-    font-size: 1.02rem;
+    font-size: 1.15rem;
     font-weight: 600;
     letter-spacing: .01em;
     color: var(--gray-900);
@@ -142,12 +133,8 @@ header p {
 
 /* ---------- 主卡片 ---------- */
 .card {
-    background: var(--glass);
-    -webkit-backdrop-filter: var(--blur);
-    backdrop-filter: var(--blur);
-    border: 1px solid var(--glass-border);
+    position: relative;
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, .9);
     padding: 24px 20px;
     width: 100%;
     max-width: 640px;
@@ -155,6 +142,23 @@ header p {
     display: flex;
     flex-direction: column;
     justify-content: center;
+}
+
+/* 毛玻璃放在偽元素上：
+   若直接在 .card 上使用 backdrop-filter，卡片內 position:fixed 的彈出視窗
+   會被限制在卡片範圍內，無法蓋住整個網頁 */
+.card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--glass);
+    -webkit-backdrop-filter: var(--blur);
+    backdrop-filter: var(--blur);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, .9);
+    pointer-events: none;
 }
 
 /* ---------- 身分驗證 ---------- */
@@ -401,7 +405,8 @@ textarea {
 }
 
 /* ---------- 簽名 ---------- */
-#sigOpenBtn {
+#sigOpenBtn,
+#rollOpenBtn {
     width: 100%;
     min-height: 50px;
     background: var(--blue-lt);
@@ -416,7 +421,8 @@ textarea {
     transition: transform .4s var(--spring), opacity .25s var(--ease), background-color .2s;
 }
 
-#sigOpenBtn:active {
+#sigOpenBtn:active,
+#rollOpenBtn:active {
     transform: scale(.96);
     opacity: .7;
     transition-duration: .08s;
@@ -442,7 +448,14 @@ textarea {
     z-index: 999;
     justify-content: center;
     align-items: center;
-    padding: 16px;
+    padding:
+        max(16px, env(safe-area-inset-top))
+        max(16px, env(safe-area-inset-right))
+        max(16px, env(safe-area-inset-bottom))
+        max(16px, env(safe-area-inset-left));
+    /* 遮罩本身不可捲動，也不讓捲動傳到背景網頁 */
+    overscroll-behavior: contain;
+    touch-action: none;
 }
 
 .modal-overlay.open {
@@ -456,14 +469,16 @@ textarea {
 }
 
 .modal-content {
-    background: var(--glass-strong);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    backdrop-filter: blur(40px) saturate(180%);
+    background: rgba(255, 255, 255, .92);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     padding: 24px 20px 20px;
     width: 100%;
     max-width: 520px;
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
     box-shadow: 0 20px 60px rgba(0, 0, 0, .18), inset 0 1px 0 rgba(255, 255, 255, .9);
 }
 
@@ -505,6 +520,47 @@ textarea {
     flex: 1;
 }
 
+/* ---------- 點名視窗 ---------- */
+#rollModal .modal-content {
+    display: flex;
+    flex-direction: column;
+    max-height: min(720px, calc(100dvh - 32px));
+    overflow: hidden;
+}
+
+#rollModal h3,
+#rollModal .btn-group {
+    flex-shrink: 0;
+}
+
+.roll-count {
+    flex-shrink: 0;
+    text-align: center;
+    font-size: .85rem;
+    color: var(--gray-500);
+    margin: -8px 0 12px;
+    min-height: 1.2em;
+}
+
+/* 名單在視窗內捲動；捲到頭不會帶動背景 */
+#rollModal #studentList {
+    flex: 1;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+}
+
+/* 視窗開啟時鎖定背景頁面（top 由 app.js 設定以保留捲動位置） */
+body.scroll-locked {
+    position: fixed;
+    left: 0;
+    right: 0;
+    width: 100%;
+    overflow: hidden;
+}
+
 /* ---------- 按鈕 ---------- */
 .btn {
     display: block;
@@ -537,7 +593,8 @@ textarea {
 }
 
 .btn:focus-visible,
-#sigOpenBtn:focus-visible {
+#sigOpenBtn:focus-visible,
+#rollOpenBtn:focus-visible {
     outline: none;
     box-shadow: 0 0 0 4px rgba(0, 122, 255, .3);
 }
@@ -858,9 +915,7 @@ footer a:active {
 
 /* ---------- 不支援毛玻璃時的備援 ---------- */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    header,
-    .card,
-    .modal-content,
+    .card::before,
     .submit-overlay-box {
         background: rgba(255, 255, 255, .97);
     }
