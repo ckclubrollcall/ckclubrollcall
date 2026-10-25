@@ -1,3 +1,8 @@
+/* ==========================================================================
+   Apple iOS 原生設計語言樣式表 (iOS Human Interface Guidelines)
+   純白簡約、極致細節、徹底消除廉價塑膠感
+   ========================================================================== */
+
 *,
 *::before,
 *::after {
@@ -8,367 +13,259 @@
 }
 
 :root {
-    /* 莫蘭迪柔和基礎色系 */
-    --green: #689f84;
-    --green-lt: #edf6f1;
-    --green-glow: rgba(104, 159, 132, 0.28);
-    --blue: #5b7e96;
-    --blue-lt: #eaf1f7;
-    --blue-glow: rgba(91, 126, 150, 0.28);
-    --red: #b36e6e;
-    --red-lt: #f8eeee;
-    --red-glow: rgba(179, 110, 110, 0.28);
+    /* iOS 官方系統色彩 (Apple System Colors) */
+    --system-blue: #007AFF;
+    --system-blue-dark: #0056B3;
+    --system-green: #34C759;
+    --system-red: #FF3B30;
+    --system-orange: #FF9500;
+    
+    /* iOS 系統群組背景色階 (Grouped Backgrounds) */
+    --system-background: #F2F2F7;         /* 蘋果標準淺灰底 (無雜色、無塑膠光斑) */
+    --card-background: #FFFFFF;           /* 核心純白面板 */
+    --card-hover: #F8F8FA;
+    --card-active: #E5E5EA;               /* 蘋果標準列表點擊反饋灰 */
+    
+    /* 系統文字排版階層 */
+    --label-primary: #000000;             /* 主要標題文字 */
+    --label-secondary: #8E8E93;           /* 輔助說明副標 */
+    --label-tertiary: #C7C7CC;            /* 分隔線與次要圖標 */
+    --separator: rgba(60, 60, 67, 0.12);  /* iOS 經典 0.5px 細分隔線 */
+    --separator-dense: rgba(60, 60, 67, 0.2);
 
-    --gray-50: #f6f8fb;
-    --gray-100: #e8eef4;
-    --gray-300: #c2d1dc;
-    --gray-500: #7c94a5;
-    --gray-700: #4f6475;
-    --gray-900: #1f2e38;
-
-    /* iOS 毛玻璃與晶瑩質感特徵 */
-    --radius-sm: 10px;
-    --radius: 16px;
-    --radius-lg: 24px;
+    /* Apple 幾何圓角規範 (Squircle Radii) */
+    --radius-sm: 8px;
+    --radius-cell: 10px;
+    --radius-group: 14px;
+    --radius-lg: 18px;
+    --radius-btn: 12px;
     --radius-pill: 9999px;
 
-    --glass-bg: rgba(255, 255, 255, 0.72);
-    --glass-bg-subtle: rgba(255, 255, 255, 0.52);
-    --glass-bg-hover: rgba(255, 255, 255, 0.88);
-    --glass-border: rgba(255, 255, 255, 0.78);
-    --glass-border-subtle: rgba(255, 255, 255, 0.45);
-    --glass-blur: blur(28px) saturate(190%);
-
-    --shadow-sm: 0 2px 8px -2px rgba(44, 62, 74, 0.06), 0 1px 3px rgba(44, 62, 74, 0.04);
-    --shadow-md: 0 12px 32px -8px rgba(44, 62, 74, 0.10), 0 2px 6px -1px rgba(44, 62, 74, 0.04);
-    --shadow-lg: 0 20px 48px -12px rgba(35, 52, 68, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
-    --shadow-highlight: inset 0 1px 1px 0 rgba(255, 255, 255, 0.9);
-
-    --ios-spring: cubic-bezier(0.2, 0.8, 0.25, 1);
+    /* 真正 iOS 靠乾淨底色純粹對比，無厚重造假外陰影 */
+    --ios-card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --ios-modal-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+    --ios-spring: cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* iOS 系統捲軸優化 */
+/* 隱藏滾動條干擾，提供極細輕柔滾動指示器 */
 ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
 }
 ::-webkit-scrollbar-track {
     background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: rgba(91, 126, 150, 0.22);
+    background: rgba(0, 0, 0, 0.14);
     border-radius: var(--radius-pill);
-    transition: background 0.2s ease;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(91, 126, 150, 0.4);
+    background: rgba(0, 0, 0, 0.28);
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
-    background-color: #f3f6fa;
-    /* 建立多層柔和的光學漸層，使毛玻璃 (backdrop-filter) 能折射出層次豐富的光芒 */
-    background-image: 
-        radial-gradient(at 15% 15%, rgba(176, 206, 226, 0.45) 0px, transparent 55%),
-        radial-gradient(at 85% 10%, rgba(200, 222, 212, 0.45) 0px, transparent 50%),
-        radial-gradient(at 75% 85%, rgba(214, 203, 227, 0.35) 0px, transparent 55%),
-        radial-gradient(at 20% 85%, rgba(228, 214, 201, 0.35) 0px, transparent 50%),
-        linear-gradient(180deg, #f7fafc 0%, #edf2f7 100%);
-    background-attachment: fixed;
-    color: var(--gray-900);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang TC", "Helvetica Neue", sans-serif;
+    background-color: var(--system-background);
+    color: var(--label-primary);
     min-height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: max(28px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(52px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
-    position: relative;
-    overflow-x: hidden;
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: max(32px, env(safe-area-inset-bottom));
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* 背景光斑裝飾，強化毛玻璃的光學通透折射效果 */
-body::before {
-    content: "";
-    position: fixed;
-    top: -120px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(720px, 92vw);
-    height: 360px;
-    background: radial-gradient(ellipse, rgba(160, 195, 220, 0.38) 0%, rgba(185, 215, 205, 0.2) 50%, transparent 75%);
-    filter: blur(48px);
-    pointer-events: none;
-    z-index: 0;
-}
-
-/* 標題樣式 */
+/* --------------------------------------------------------------------------
+   頁面頂部標題 (Header)
+   純粹懸浮於頁首，不包覆在卡片中
+   -------------------------------------------------------------------------- */
 header {
-    position: relative;
-    z-index: 1;
     width: 100%;
-    max-width: 640px;
+    max-width: 560px;
     display: flex;
     align-items: center;
-    gap: 14px;
-    margin-bottom: 22px;
     justify-content: center;
-    padding: 6px 12px;
-    transition: transform 0.2s var(--ios-spring);
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 8px 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    transition: opacity 0.15s ease;
+    user-select: none;
 }
 
-header:hover {
-    transform: translateY(-1px);
+header:active {
+    opacity: 0.7;
 }
 
 .logo img {
-    filter: drop-shadow(0 4px 10px rgba(91, 126, 150, 0.25));
-    transition: transform 0.3s var(--ios-spring);
-}
-
-header:hover .logo img {
-    transform: rotate(-4deg) scale(1.05);
+    display: block;
 }
 
 header h1 {
-    font-size: 1.35rem;
+    font-size: 1.3rem;
     font-weight: 700;
-    color: var(--gray-900);
-    letter-spacing: -0.02em;
-    line-height: 1.3;
+    color: var(--label-primary);
+    letter-spacing: -0.015em;
+    line-height: 1.25;
 }
 
 header p {
     font-size: 0.82rem;
-    color: var(--gray-500);
+    color: var(--label-secondary);
     margin-top: 2px;
-    font-weight: 500;
 }
 
-/* 主卡片容器（iOS 經典毛玻璃質感） */
+/* --------------------------------------------------------------------------
+   主內容卡片容器 (iOS Inset Grouped Section)
+   以純白大氣、乾淨俐落的形態呈現
+   -------------------------------------------------------------------------- */
 .card {
-    position: relative;
-    z-index: 1;
-    background: var(--glass-bg);
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--glass-border);
+    background: var(--card-background);
     border-radius: var(--radius-lg);
-    box-shadow: 
-        var(--shadow-lg),
-        var(--shadow-highlight);
-    padding: 32px 28px;
+    box-shadow: var(--ios-card-shadow);
+    padding: 24px 20px;
     width: 100%;
-    max-width: 640px;
+    max-width: 560px;
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    border: 0.5px solid rgba(0, 0, 0, 0.08);
 }
 
-/* 手機版 (iOS / Android) 專屬極致體驗優化 */
 @media (max-width: 480px) {
     body {
-        padding-top: max(16px, env(safe-area-inset-top));
-        padding-bottom: max(28px, env(safe-area-inset-bottom));
-        padding-left: max(12px, env(safe-area-inset-left));
-        padding-right: max(12px, env(safe-area-inset-right));
+        padding-top: max(12px, env(safe-area-inset-top));
+        padding-bottom: max(24px, env(safe-area-inset-bottom));
+        padding-left: 12px;
+        padding-right: 12px;
     }
-
     .card {
-        padding: 22px 16px;
-        border-radius: 20px;
+        padding: 20px 16px;
+        border-radius: 16px;
     }
-
     header {
-        margin-bottom: 16px;
+        margin-bottom: 18px;
         gap: 10px;
     }
-
     header h1 {
-        font-size: 1.22rem;
-    }
-
-    .logo img {
-        width: 32px !important;
-        height: 32px !important;
-    }
-
-    /* 關鍵：避免 iOS Safari 點擊聚焦時自動放大畫面 (Auto-Zoom) */
-    input[type="text"],
-    input[type="password"],
-    input[type="date"],
-    select,
-    textarea {
-        font-size: 16px !important;
-        padding: 11px 12px;
-    }
-
-    /* 手機上主選單按鈕緊湊精巧、避免超出螢幕 */
-    .btn-menu-green,
-    .btn-menu-blue {
-        padding: 18px 14px;
-        border-radius: 14px;
-    }
-
-    .menu-btn-title {
         font-size: 1.2rem;
-    }
-
-    .menu-btn-desc {
-        font-size: 0.82rem;
-    }
-
-    /* 點名列表在手機上自適應高度，並保證符合 44pt 觸控舒適區 */
-    #studentList {
-        max-height: clamp(220px, 42vh, 340px);
-    }
-
-    .student-item {
-        min-height: 46px;
-        padding: 11px 14px;
-        font-size: 0.94rem;
-    }
-
-    .student-item input[type="checkbox"] {
-        width: 22px;
-        height: 22px;
-        margin-right: 12px;
-    }
-
-    /* 簽名畫布與彈窗小螢幕自適應 */
-    .modal-content {
-        padding: 20px 16px 18px;
-        border-radius: 20px;
-        max-height: 88dvh;
-        overflow-y: auto;
-    }
-
-    #sigCanvas {
-        height: clamp(180px, 32vh, 240px);
-    }
-
-    .btn-group {
-        gap: 10px;
-        margin-top: 14px;
-    }
-
-    .btn {
-        padding: 12px 14px;
-        font-size: 0.96rem;
     }
 }
 
-/* 身分驗證載入中頁面 */
+/* --------------------------------------------------------------------------
+   載入指示器 (iOS Activity Indicator)
+   -------------------------------------------------------------------------- */
 #loadingArea {
     text-align: center;
-    padding: 48px 0;
-    color: var(--gray-700);
-    font-size: 1rem;
+    padding: 40px 0;
+    color: var(--label-secondary);
+    font-size: 0.92rem;
     font-weight: 500;
 }
 
 .spinner {
-    width: 38px;
-    height: 38px;
-    border: 3.5px solid rgba(91, 126, 150, 0.16);
-    border-top-color: var(--blue);
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(0, 0, 0, 0.08);
+    border-top-color: var(--system-blue);
     border-radius: 50%;
-    animation: spin 0.8s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
-    margin: 0 auto 16px;
+    animation: iosSpin 0.75s linear infinite;
+    margin: 0 auto 12px;
 }
 
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+@keyframes iosSpin {
+    to { transform: rotate(360deg); }
 }
 
-/* Google 登入按鈕區域 */
+/* --------------------------------------------------------------------------
+   登入區塊
+   -------------------------------------------------------------------------- */
 #loginArea {
     display: none;
     text-align: center;
-    padding: 36px 0 20px;
+    padding: 32px 0 16px;
 }
 
 #loginArea .login-title {
     font-size: 1.15rem;
     font-weight: 600;
-    color: var(--gray-900);
-    margin-bottom: 8px;
+    color: var(--label-primary);
+    margin-bottom: 6px;
     letter-spacing: -0.01em;
 }
 
 #loginArea .login-sub {
     font-size: 0.88rem;
-    color: var(--gray-500);
+    color: var(--label-secondary);
     margin-bottom: 24px;
 }
 
 #g_id_signin {
     display: inline-block;
-    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08));
-    transition: transform 0.2s var(--ios-spring);
 }
 
-#g_id_signin:hover {
-    transform: translateY(-2px);
-}
-
-/* 外部登入頁面 (iOS 嵌進式毛玻璃區塊) */
+/* 測試登入區域 */
 #teacherAuthArea {
     display: none;
-    background: rgba(234, 241, 247, 0.65);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(91, 126, 150, 0.28);
-    border-radius: var(--radius);
-    padding: 22px;
-    margin-top: 18px;
-    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8);
+    background: #F9F9FA;
+    border: 0.5px solid var(--separator-dense);
+    border-radius: var(--radius-group);
+    padding: 18px;
+    margin-top: 16px;
+    text-align: left;
 }
 
 #teacherAuthArea h3 {
-    color: var(--blue);
-    font-size: 1.05rem;
-    font-weight: 700;
-    margin-bottom: 8px;
+    color: var(--label-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 6px;
 }
 
 #teacherAuthArea p {
-    font-size: 0.88rem;
-    color: var(--gray-700);
-    line-height: 1.5;
-    margin-bottom: 14px;
+    font-size: 0.84rem;
+    color: var(--label-secondary);
+    line-height: 1.45;
+    margin-bottom: 12px;
 }
 
-/* 表單頁面 */
+/* --------------------------------------------------------------------------
+   表單控制項 (iOS Inset Form Fields)
+   -------------------------------------------------------------------------- */
 #formArea {
     display: none;
 }
 
 .form-group {
-    margin-bottom: 22px;
+    margin-bottom: 16px;
 }
 
 .form-group label {
     display: block;
     font-weight: 600;
-    font-size: 0.92rem;
-    color: var(--gray-900);
-    margin-bottom: 8px;
+    font-size: 0.82rem;
+    color: var(--label-secondary);
+    margin-bottom: 6px;
     letter-spacing: -0.01em;
+    text-transform: uppercase;
 }
 
 .form-group .hint {
-    font-size: 0.8rem;
-    color: var(--gray-500);
+    font-size: 0.78rem;
+    color: var(--label-secondary);
     margin-bottom: 6px;
     display: block;
+    text-transform: none;
 }
 
-/* iOS 現代質感輸入控制項 */
+/* 乾淨白底輸入控制項 */
 input[type="text"],
 input[type="password"],
 input[type="date"],
@@ -376,27 +273,22 @@ select,
 textarea {
     width: 100%;
     padding: 12px 14px;
-    background: rgba(255, 255, 255, 0.68);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(175, 195, 210, 0.45);
-    border-radius: var(--radius-sm);
-    font-size: 0.96rem;
+    background: #FFFFFF;
+    border: 1px solid #D1D1D6;
+    border-radius: var(--radius-cell);
+    font-size: 16px !important; /* 鎖定 16px 防止 iOS Safari 自動鏡頭放大 */
     font-family: inherit;
-    color: var(--gray-900);
-    box-shadow: 
-        inset 0 1px 2px rgba(44, 62, 74, 0.04),
-        0 1px 0 rgba(255, 255, 255, 0.9);
-    transition: all 0.25s var(--ios-spring);
+    color: var(--label-primary);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
     appearance: none;
     -webkit-appearance: none;
 }
 
 select {
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237c94a5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238E8E93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px 16px;
+    background-position: right 14px center;
+    background-size: 14px 14px;
     padding-right: 36px;
     cursor: pointer;
 }
@@ -405,82 +297,93 @@ input:focus,
 select:focus,
 textarea:focus {
     outline: none;
-    background: rgba(255, 255, 255, 0.92);
-    border-color: var(--blue);
-    box-shadow: 
-        0 0 0 4px rgba(91, 126, 150, 0.16),
-        0 2px 8px rgba(91, 126, 150, 0.1),
-        inset 0 1px 1px rgba(255, 255, 255, 0.8);
+    border-color: var(--system-blue);
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.18);
 }
 
 input[readonly],
 input[disabled] {
-    background: rgba(234, 240, 246, 0.55);
-    color: var(--gray-700);
-    border-color: rgba(194, 209, 220, 0.4);
+    background: #F2F2F7;
+    color: var(--label-secondary);
+    border-color: #E5E5EA;
     cursor: not-allowed;
-    box-shadow: none;
 }
 
 textarea {
-    height: 96px;
+    height: 90px;
     resize: vertical;
-    line-height: 1.5;
+    line-height: 1.45;
 }
 
-/* 點名表容器 (iOS Grouped View 造型) */
+/* --------------------------------------------------------------------------
+   點名名單清單 (iOS Inset Grouped Table View)
+   純白俐落、移除任何大塊粉紅色粉綠色塑膠底色！
+   -------------------------------------------------------------------------- */
 #studentList {
-    background: rgba(255, 255, 255, 0.55);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(194, 209, 220, 0.5);
-    border-radius: var(--radius);
-    max-height: 380px;
+    background: #FFFFFF;
+    border: 1px solid #E5E5EA;
+    border-radius: var(--radius-group);
+    max-height: clamp(240px, 42vh, 380px);
     overflow-y: auto;
-    box-shadow: inset 0 1px 3px rgba(44, 62, 74, 0.05);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .student-item {
     display: flex;
     align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid rgba(220, 200, 200, 0.4);
+    min-height: 48px;
+    padding: 10px 16px;
+    border-bottom: 0.5px solid var(--separator);
     font-size: 0.95rem;
     font-weight: 500;
     cursor: pointer;
-    background: rgba(248, 238, 238, 0.65);
-    color: var(--red);
-    transition: all 0.22s var(--ios-spring);
+    background: #FFFFFF;
+    color: var(--label-primary);
+    transition: background-color 0.15s ease;
     user-select: none;
+    -webkit-user-select: none;
 }
 
 .student-item:last-child {
     border-bottom: none;
 }
 
-.student-item:hover {
-    filter: brightness(0.97);
+.student-item:active {
+    background-color: var(--card-active);
 }
 
-.student-item.present {
-    background: rgba(237, 246, 241, 0.75);
-    color: var(--green);
-    border-bottom-color: rgba(190, 225, 205, 0.4);
-}
-
+/* iOS 原生圓形 Checkmark 控件 */
 .student-item input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
+    appearance: none;
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
     margin-right: 14px;
-    accent-color: var(--green);
+    border: 1.5px solid #C7C7CC;
+    border-radius: 50%;
     cursor: pointer;
     flex-shrink: 0;
-    border-radius: 6px;
-    transition: transform 0.15s ease;
+    position: relative;
+    background: #FFFFFF;
+    transition: all 0.2s cubic-bezier(0.18, 0.9, 0.3, 1.2);
 }
 
-.student-item:active input[type="checkbox"] {
-    transform: scale(0.9);
+/* 打勾時呈現 Apple 經典藍色實心圓圈 + 白色勾勾 */
+.student-item input[type="checkbox"]:checked {
+    background-color: var(--system-blue);
+    border-color: var(--system-blue);
+}
+
+.student-item input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    top: 5px;
+    left: 8px;
+    width: 4px;
+    height: 8px;
+    border: solid #FFFFFF;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
 }
 
 .student-item label {
@@ -489,61 +392,86 @@ textarea {
     font-weight: 500;
 }
 
-/* 點擊簽名按鈕 */
+/* 狀態標籤：出席（精巧純淨綠色膠囊）/ 缺席（精巧柔灰膠囊） */
+.student-item.present {
+    background: #FFFFFF;
+}
+
+.student-item.present label {
+    color: var(--label-primary);
+    font-weight: 600;
+}
+
+.student-item.present::after {
+    content: "已到";
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--system-green);
+    background: rgba(52, 199, 89, 0.12);
+    padding: 3px 8px;
+    border-radius: 6px;
+    margin-left: auto;
+}
+
+.student-item:not(.present)::after {
+    content: "缺席";
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--label-secondary);
+    background: rgba(142, 142, 147, 0.1);
+    padding: 3px 8px;
+    border-radius: 6px;
+    margin-left: auto;
+}
+
+/* --------------------------------------------------------------------------
+   老師簽名開啟按鈕
+   -------------------------------------------------------------------------- */
 #sigOpenBtn {
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1.5px dashed rgba(91, 126, 150, 0.45);
-    color: var(--blue);
-    border-radius: var(--radius-sm);
+    background: #F2F2F7;
+    border: 1px solid #E5E5EA;
+    color: var(--system-blue);
+    border-radius: var(--radius-cell);
     padding: 13px;
-    font-size: 0.96rem;
+    font-size: 0.95rem;
     font-weight: 600;
     width: 100%;
     cursor: pointer;
-    transition: all 0.25s var(--ios-spring);
-    box-shadow: 0 1px 3px rgba(44, 62, 74, 0.04);
-}
-
-#sigOpenBtn:hover {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: var(--blue);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(91, 126, 150, 0.15);
+    transition: background-color 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
 }
 
 #sigOpenBtn:active {
-    transform: scale(0.98);
+    background-color: var(--card-active);
 }
 
 #sigStatus {
     display: none;
-    color: var(--green);
+    color: var(--system-green);
     font-weight: 600;
-    font-size: 0.92rem;
+    font-size: 0.88rem;
     text-align: center;
-    margin-top: 10px;
+    margin-top: 8px;
 }
 
-/* 簽名面板與彈跳對話框 (iOS 景深毛玻璃 Overlay) */
+/* --------------------------------------------------------------------------
+   iOS 原生彈跳視窗 (Action Sheet / Alert View)
+   超高質感毛玻璃景深
+   -------------------------------------------------------------------------- */
 .modal-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(22, 34, 46, 0.35);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     z-index: 999;
     justify-content: center;
     align-items: center;
     padding: 16px;
-    animation: overlayFadeIn 0.25s ease forwards;
-}
-
-@keyframes overlayFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
 }
 
 .modal-overlay.open {
@@ -551,228 +479,148 @@ textarea {
 }
 
 .modal-content {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(32px) saturate(200%);
-    -webkit-backdrop-filter: blur(32px) saturate(200%);
-    border: 1px solid rgba(255, 255, 255, 0.85);
-    border-radius: 22px;
-    padding: 26px 22px 22px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: var(--radius-lg);
+    padding: 24px 20px 20px;
     width: 100%;
-    max-width: 520px;
-    box-shadow: 
-        0 24px 60px -12px rgba(18, 30, 44, 0.25),
-        0 0 0 1px rgba(255, 255, 255, 0.6) inset,
-        var(--shadow-highlight);
-    animation: modalBounce 0.3s cubic-bezier(0.18, 0.9, 0.3, 1.2) forwards;
+    max-width: 460px;
+    max-height: 90dvh;
+    overflow-y: auto;
+    box-shadow: var(--ios-modal-shadow);
+    border: 0.5px solid rgba(0, 0, 0, 0.1);
+    animation: iosPop 0.25s var(--ios-spring) forwards;
 }
 
-@keyframes modalBounce {
+@keyframes iosPop {
     from {
         opacity: 0;
-        transform: scale(0.92) translateY(12px);
+        transform: scale(0.95);
     }
     to {
         opacity: 1;
-        transform: scale(1) translateY(0);
+        transform: scale(1);
     }
 }
 
 .modal-content h3 {
-    font-size: 1.15rem;
-    font-weight: 700;
+    font-size: 1.1rem;
+    font-weight: 600;
     text-align: center;
-    margin-bottom: 16px;
-    color: var(--gray-900);
-    letter-spacing: -0.01em;
+    margin-bottom: 14px;
+    color: var(--label-primary);
 }
 
 #sigCanvas {
     width: 100%;
-    height: 260px;
-    border: 1px solid rgba(194, 209, 220, 0.6);
-    border-radius: var(--radius-sm);
-    background: #ffffff;
+    height: clamp(190px, 32vh, 250px);
+    border: 1px solid #D1D1D6;
+    border-radius: var(--radius-cell);
+    background: #FFFFFF;
     cursor: crosshair;
     touch-action: none;
     display: block;
-    box-shadow: inset 0 2px 4px rgba(44, 62, 74, 0.05);
 }
 
 .btn-group {
     display: flex;
-    gap: 12px;
-    margin-top: 18px;
+    gap: 10px;
+    margin-top: 16px;
 }
 
 .btn-group button {
     flex: 1;
 }
 
-/* iOS 系統按鈕通用設計 */
+/* --------------------------------------------------------------------------
+   iOS 標準按鈕 (Apple Filled & Tonal Buttons)
+   -------------------------------------------------------------------------- */
 .btn {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    padding: 13px 18px;
+    padding: 13px 16px;
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-btn);
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     font-family: inherit;
     letter-spacing: -0.01em;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.16s var(--ios-spring), box-shadow 0.2s ease, opacity 0.2s ease;
-}
-
-.btn:hover {
-    filter: brightness(1.03);
+    transition: opacity 0.15s, transform 0.12s;
 }
 
 .btn:active {
-    transform: scale(0.975);
+    transform: scale(0.98);
+    opacity: 0.85;
 }
 
 .btn:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
     transform: none !important;
 }
 
-/* 按鈕風格 */
+/* 主要操作按鈕：iOS 招牌純藍 */
 .btn-primary {
-    background: linear-gradient(180deg, #668ba4 0%, #51748c 100%);
-    color: #fff;
-    box-shadow: 0 4px 14px var(--blue-glow), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.btn-primary:hover {
-    box-shadow: 0 6px 18px var(--blue-glow), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    background: var(--system-blue);
+    color: #FFFFFF;
 }
 
 .btn-green {
-    background: linear-gradient(180deg, #74a88f 0%, #5c9177 100%);
-    color: #fff;
-    box-shadow: 0 4px 14px var(--green-glow), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.btn-green:hover {
-    box-shadow: 0 6px 18px var(--green-glow), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    background: var(--system-green);
+    color: #FFFFFF;
 }
 
 .btn-red {
-    background: linear-gradient(180deg, #be7878 0%, #a86262 100%);
-    color: #fff;
-    box-shadow: 0 4px 14px var(--red-glow), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.btn-red:hover {
-    box-shadow: 0 6px 18px var(--red-glow), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    background: #FEE8E7;
+    color: var(--system-red);
 }
 
 .btn-gray {
-    background: linear-gradient(180deg, #8ba1b0 0%, #758b99 100%);
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(117, 139, 153, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    background: #E5E5EA;
+    color: var(--label-primary);
 }
 
 .btn-submit {
-    background: linear-gradient(180deg, #668ba4 0%, #51748c 100%);
-    color: #fff;
-    margin-top: 10px;
-    font-size: 1.05rem;
-    font-weight: 700;
+    background: var(--system-blue);
+    color: #FFFFFF;
+    margin-top: 14px;
     padding: 14px;
-    border-radius: var(--radius);
-    box-shadow: 0 6px 20px var(--blue-glow), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    font-size: 1.05rem;
+    font-weight: 600;
+    border-radius: var(--radius-btn);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
 }
 
-.btn-submit:hover {
-    box-shadow: 0 8px 24px var(--blue-glow), inset 0 1px 0 rgba(255, 255, 255, 0.45);
-    transform: translateY(-1px);
-}
-
-/* 分隔線 */
+/* 細線分隔 */
 .divider {
     border: none;
-    border-top: 1px solid rgba(194, 209, 220, 0.45);
-    margin: 24px 0;
+    border-top: 0.5px solid var(--separator);
+    margin: 20px 0;
 }
 
 /* 頁尾 */
 footer {
-    position: relative;
-    z-index: 1;
-    margin-top: 26px;
-    font-size: 0.8rem;
-    color: var(--gray-500);
+    width: 100%;
+    margin-top: 24px;
+    font-size: 0.78rem;
+    color: var(--label-secondary);
     text-align: center;
-    font-weight: 500;
 }
 
 footer a {
-    color: var(--blue);
+    color: var(--system-blue);
     text-decoration: none;
     margin-left: 6px;
-    font-size: 0.95rem;
-    vertical-align: middle;
-    transition: opacity 0.2s;
 }
 
-footer a:hover {
-    opacity: 0.7;
-}
-
-/* 記錄列表項目 (iOS 毛玻璃卡片列) */
-.record-item {
-    padding: 14px 16px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--glass-border-subtle);
-    background: var(--glass-bg-subtle);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    margin-bottom: 10px;
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: var(--gray-900);
-    cursor: pointer;
-    transition: all 0.22s var(--ios-spring);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: var(--shadow-sm);
-}
-
-.record-item::before {
-    content: '';
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-    background-image: url('https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E5%96%AE%E7%AD%86%E7%B4%80%E9%8C%84.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    opacity: 0.85;
-}
-
-.record-item:hover {
-    background: var(--glass-bg-hover);
-    border-color: rgba(91, 126, 150, 0.4);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.record-item:active {
-    transform: scale(0.985);
-}
-
-#recordDetailArea {
-    font-size: 0.94rem;
-}
-
-/* 主選單滿版與彈性佈局 */
+/* --------------------------------------------------------------------------
+   主選單頁面 (iOS Action Cell List)
+   徹底拋棄塑膠感虛線框！改用 iOS 原生純白卡片
+   -------------------------------------------------------------------------- */
 #menuArea {
     display: none;
     flex: 1;
@@ -780,126 +628,143 @@ footer a:hover {
     flex-direction: column;
 }
 
-/* 主選單按鈕容器 */
 .menu-btn-row {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     flex: 1;
-    margin-top: 0;
 }
 
-/* 
- * 主選單按鈕 (iOS Control Center 毛玻璃功能面板)
- * 結合通透微漸層、晶亮毛玻璃與精準高光倒角
- */
-.btn-menu-green {
-    background: linear-gradient(135deg, rgba(234, 246, 240, 0.82) 0%, rgba(216, 240, 227, 0.58) 100%);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    color: #3b614d;
-    border: 1px solid rgba(120, 175, 145, 0.45);
-    box-shadow: 
-        0 8px 24px -4px rgba(104, 159, 132, 0.18),
-        inset 0 1px 1px rgba(255, 255, 255, 0.95);
-    flex: 1;
-    padding: 22px 18px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border-radius: var(--radius);
-    line-height: 1.4;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.25s var(--ios-spring);
-}
-
+/* iOS 原生操作列單元格 */
+.btn-menu-green,
 .btn-menu-blue {
-    background: linear-gradient(135deg, rgba(235, 243, 250, 0.82) 0%, rgba(220, 235, 246, 0.58) 100%);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    color: #405c73;
-    border: 1px solid rgba(110, 148, 175, 0.45);
-    box-shadow: 
-        0 8px 24px -4px rgba(91, 126, 150, 0.18),
-        inset 0 1px 1px rgba(255, 255, 255, 0.95);
-    flex: 1;
-    padding: 22px 18px;
+    background: #FFFFFF;
+    border: 1px solid #E5E5EA;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border-radius: var(--radius-group);
+    padding: 20px 18px;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border-radius: var(--radius);
-    line-height: 1.4;
+    gap: 16px;
     cursor: pointer;
-    font-family: inherit;
-    transition: all 0.25s var(--ios-spring);
-}
-
-.btn-menu-green:hover {
-    background: linear-gradient(135deg, rgba(238, 248, 243, 0.95) 0%, rgba(224, 244, 233, 0.75) 100%);
-    border-color: rgba(120, 175, 145, 0.65);
-    transform: translateY(-2px);
-    box-shadow: 
-        0 14px 30px -4px rgba(104, 159, 132, 0.26),
-        inset 0 1px 1px rgba(255, 255, 255, 1);
-}
-
-.btn-menu-blue:hover {
-    background: linear-gradient(135deg, rgba(240, 246, 252, 0.95) 0%, rgba(228, 240, 250, 0.75) 100%);
-    border-color: rgba(110, 148, 175, 0.65);
-    transform: translateY(-2px);
-    box-shadow: 
-        0 14px 30px -4px rgba(91, 126, 150, 0.26),
-        inset 0 1px 1px rgba(255, 255, 255, 1);
+    text-align: left;
+    transition: background-color 0.15s, transform 0.12s;
+    position: relative;
+    width: 100%;
 }
 
 .btn-menu-green:active,
 .btn-menu-blue:active {
-    transform: scale(0.98);
+    background-color: var(--card-active);
+    transform: scale(0.985);
 }
 
-/* 當非幹部登入隱藏點名按鈕時，讓查詢紀錄單獨撐滿 100% 高度 */
+/* 左側圖示裝飾膠囊 */
+.menu-icon-badge {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.badge-green {
+    background: rgba(52, 199, 89, 0.12);
+}
+
+.badge-blue {
+    background: rgba(0, 122, 255, 0.12);
+}
+
+.menu-icon-badge img {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+}
+
+.menu-text-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.menu-btn-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--label-primary);
+    line-height: 1.3;
+}
+
+.menu-btn-desc {
+    font-size: 0.84rem;
+    color: var(--label-secondary);
+    font-weight: 400;
+    margin-top: 2px;
+}
+
+/* iOS 經典右箭頭 Chevron Indicator */
+.btn-menu-green::after,
+.btn-menu-blue::after {
+    content: "›";
+    font-size: 1.6rem;
+    font-weight: 400;
+    color: var(--label-tertiary);
+    line-height: 1;
+    margin-left: auto;
+}
+
+/* 當非幹部登入隱藏點名按鈕時 */
 .btn-menu-green[style*="none"] + .btn-menu-blue {
     height: 100%;
 }
 
-.menu-btn-title {
-    font-size: 1.35rem;
-    font-weight: 700;
-    line-height: 1.2;
-    letter-spacing: -0.01em;
-}
-
-.menu-btn-desc {
-    font-size: 0.88rem;
-    color: var(--gray-700);
-    font-weight: 500;
-    opacity: 0.88;
-}
-
-/* 點名詳細資訊卡 (iOS Grouped Info Card) */
-.detail-card {
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border-radius: var(--radius);
-    border: 1px solid var(--glass-border);
-    overflow: hidden;
+/* --------------------------------------------------------------------------
+   歷史紀錄清單 (iOS Grouped Records List)
+   -------------------------------------------------------------------------- */
+.record-item {
+    background: #FFFFFF;
+    border: 1px solid #E5E5EA;
+    border-radius: var(--radius-cell);
+    padding: 14px 16px;
     margin-bottom: 8px;
-    box-shadow: var(--shadow-sm);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--label-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background-color 0.15s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.record-item:active {
+    background-color: var(--card-active);
+}
+
+.record-item::after {
+    content: "›";
+    font-size: 1.4rem;
+    color: var(--label-tertiary);
+}
+
+/* 詳細卡片 (iOS Table View Details) */
+.detail-card {
+    background: #FFFFFF;
+    border-radius: var(--radius-group);
+    border: 1px solid #E5E5EA;
+    overflow: hidden;
+    margin-bottom: 12px;
 }
 
 .detail-row {
     display: flex;
-    padding: 12px 16px;
-    border-bottom: 1px solid rgba(194, 209, 220, 0.35);
+    padding: 13px 16px;
+    border-bottom: 0.5px solid var(--separator);
     font-size: 0.94rem;
     gap: 12px;
-    align-items: flex-start;
 }
 
 .detail-row:last-child {
@@ -907,57 +772,54 @@ footer a:hover {
 }
 
 .detail-label {
-    color: var(--gray-500);
-    font-size: 0.84rem;
-    font-weight: 600;
-    min-width: 76px;
-    padding-top: 1px;
+    color: var(--label-secondary);
+    font-size: 0.88rem;
+    font-weight: 500;
+    min-width: 80px;
     flex-shrink: 0;
 }
 
 .detail-row-absent {
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .absent-box {
     white-space: pre-wrap;
-    background: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(194, 209, 220, 0.45);
-    border-radius: var(--radius-sm);
-    padding: 12px 14px;
-    font-size: 0.92rem;
-    color: var(--gray-700);
-    line-height: 1.7;
-    box-shadow: inset 0 1px 2px rgba(44, 62, 74, 0.03);
+    background: #F9F9FA;
+    border: 1px solid #E5E5EA;
+    border-radius: var(--radius-cell);
+    padding: 12px;
+    font-size: 0.9rem;
+    color: var(--label-primary);
+    line-height: 1.6;
 }
 
 .char-counter {
     font-size: 0.78rem;
-    color: var(--gray-500);
+    color: var(--label-secondary);
     text-align: right;
-    margin-top: 5px;
-    font-weight: 500;
+    margin-top: 4px;
 }
 
 .char-counter.warn {
-    color: var(--red);
-    font-weight: 600;
+    color: var(--system-red);
 }
 
-/* 送出中遮罩層 (iOS HUD 載入效果) */
+/* --------------------------------------------------------------------------
+   送出中 HUD (iOS Native HUD)
+   -------------------------------------------------------------------------- */
 .submit-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(20, 32, 44, 0.35);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     z-index: 950;
     justify-content: center;
     align-items: center;
     padding: 16px;
-    animation: overlayFadeIn 0.2s ease forwards;
 }
 
 .submit-overlay.open {
@@ -965,39 +827,64 @@ footer a:hover {
 }
 
 .submit-overlay-box {
-    background: rgba(255, 255, 255, 0.88);
-    backdrop-filter: blur(30px) saturate(190%);
-    -webkit-backdrop-filter: blur(30px) saturate(190%);
-    border: 1px solid rgba(255, 255, 255, 0.85);
-    border-radius: 20px;
-    padding: 30px 36px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 18px;
+    padding: 28px 32px;
     text-align: center;
-    box-shadow: 
-        0 24px 60px -12px rgba(18, 30, 44, 0.28),
-        var(--shadow-highlight);
-    max-width: 320px;
-    animation: modalBounce 0.25s var(--ios-spring) forwards;
-}
-
-.submit-overlay-box .spinner {
-    margin: 0 auto 16px;
+    box-shadow: var(--ios-modal-shadow);
+    border: 0.5px solid rgba(0, 0, 0, 0.1);
+    max-width: 280px;
 }
 
 .submit-overlay-box p {
-    font-size: 0.98rem;
+    font-size: 0.95rem;
     font-weight: 600;
-    color: var(--gray-900);
-    line-height: 1.5;
+    color: var(--label-primary);
 }
 
-/* 自訂提示對話框樣式 (iOS Alert View) */
+/* --------------------------------------------------------------------------
+   自訂系統對話框 (iOS Native Alert Style)
+   -------------------------------------------------------------------------- */
 #customDialog .modal-content {
-    max-width: 380px;
+    max-width: 290px;
     text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.85);
-    border-radius: 22px;
-    box-shadow: 
-        0 24px 60px -10px rgba(22, 34, 46, 0.25),
-        var(--shadow-highlight);
-    animation: modalBounce 0.28s var(--ios-spring) forwards;
+    border-radius: 14px;
+    padding: 20px 16px 14px;
+}
+
+#customDialog h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+#customDialog p {
+    font-size: 0.88rem;
+    color: var(--label-secondary);
+    margin-bottom: 16px;
+}
+
+#customDialog .btn-group {
+    border-top: 0.5px solid var(--separator);
+    margin: 14px -16px -14px;
+    padding-top: 0;
+    gap: 0;
+}
+
+#customDialog .btn-group .btn {
+    border-radius: 0;
+    background: transparent;
+    padding: 12px;
+    font-size: 1rem;
+    font-weight: 400;
+}
+
+#customDialog #customDialogCancelBtn {
+    color: var(--system-blue);
+    border-right: 0.5px solid var(--separator);
+}
+
+#customDialog #customDialogConfirmBtn {
+    color: var(--system-blue);
+    font-weight: 600;
 }
