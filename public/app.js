@@ -1211,6 +1211,8 @@ function clearCanvas() {
  */
 function closeSigModal() {
     document.getElementById('sigModal').classList.remove('open');
+    document.getElementById('sigPreview').src = canvas.toDataURL('image/png');
+    document.getElementById('sigPreview').style.display = 'block';
     const isEditing = !!window._editingDate;
     const sigStatus = document.getElementById('sigStatus');
     if (sigStatus) {
