@@ -22,6 +22,7 @@
     --red: #ff3b30;
     --red-lt: rgba(255, 59, 48, .10);
     --orange: #ff9500;
+    --ios-dark-gray: #48484a;   /* iOS systemGray3 (dark) */
 
     /* 灰階（iOS Label / Fill 系統） */
     --gray-50: #f9f9fb;
@@ -404,14 +405,48 @@ textarea {
     margin: 0;
 }
 
+/* ---------- 表單分區卡片（僅 form 頁） ---------- */
+/* 外層大卡片改為透明容器，由各個 .section-card 負責視覺 */
+body[data-page="form"] .card {
+    padding: 0;
+    justify-content: flex-start;
+}
+
+body[data-page="form"] .card::before {
+    display: none;
+}
+
+/* 注意：不要在 .section-card 上使用 backdrop-filter / transform，
+   否則卡片內 position:fixed 的元素會被限制在卡片範圍內 */
+.section-card {
+    background: rgba(255, 255, 255, .88);
+    border: 1px solid var(--hairline);
+    border-radius: 24px;
+    padding: 18px 16px 4px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+}
+
+.section-card .form-group:last-child {
+    margin-bottom: 16px;
+}
+
+.section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0 0 16px 4px;
+    letter-spacing: .01em;
+}
+
 /* ---------- 簽名 ---------- */
 #sigOpenBtn,
 #rollOpenBtn {
     width: 100%;
     min-height: 50px;
-    background: var(--blue-lt);
+    background: var(--ios-dark-gray);
     border: none;
-    color: var(--blue);
+    color: #fff;
     border-radius: 999px;
     padding: 12px;
     font-size: 1rem;
@@ -596,7 +631,7 @@ body.scroll-locked {
 #sigOpenBtn:focus-visible,
 #rollOpenBtn:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 4px rgba(0, 122, 255, .3);
+    box-shadow: 0 0 0 4px rgba(72, 72, 74, .3);
 }
 
 /* 主要：實心藍 */
