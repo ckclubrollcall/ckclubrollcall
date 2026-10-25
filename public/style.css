@@ -1092,3 +1092,103 @@ footer a:active {
         background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 14' fill='none' stroke='%2363636a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1l6 6-6 6'/%3E%3C/svg%3E") center / contain no-repeat;
     }
 }
+
+
+/* =========================================================
+   彈出式選項（取代原生 select）
+   ========================================================= */
+.select-btn {
+    display: block;
+    width: 100%;
+    min-height: 46px;
+    padding: 12px 40px 12px 14px;
+    border: 1.5px solid transparent;
+    border-radius: var(--radius);
+    background-color: var(--gray-100);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='16' viewBox='0 0 12 16' fill='none' stroke='%238e8e93' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 6L6 2.5 9.5 6M2.5 10L6 13.5 9.5 10'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    font-size: 16px;
+    font-family: inherit;
+    text-align: left;
+    color: var(--gray-900);
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: transform .4s var(--spring), opacity .25s var(--ease);
+}
+
+.select-btn:active {
+    transform: scale(.98);
+    opacity: .7;
+    transition-duration: .08s;
+}
+
+.select-btn:focus-visible {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 4px rgba(0, 122, 255, .18);
+}
+
+.option-list {
+    background: rgba(255, 255, 255, .7);
+    border: 1px solid var(--hairline);
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.option-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 52px;
+    padding: 14px 16px;
+    font-size: 1rem;
+    color: var(--gray-900);
+    cursor: pointer;
+    transition: background-color .25s var(--ease);
+}
+
+.option-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 16px;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: var(--hairline);
+}
+
+.option-item:active {
+    background: rgba(120, 120, 128, .12);
+    transition-duration: .06s;
+}
+
+.option-item:focus-visible {
+    outline: none;
+    background: rgba(120, 120, 128, .12);
+}
+
+/* 已選項目：右側藍色勾勾 */
+.option-item.selected {
+    font-weight: 600;
+}
+
+.option-item.selected::before {
+    content: '';
+    order: 2;
+    width: 18px;
+    height: 18px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23007aff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+@media (prefers-color-scheme: dark) {
+    .option-list {
+        background: rgba(58, 58, 60, .7);
+    }
+
+    .select-btn:focus-visible {
+        box-shadow: 0 0 0 4px rgba(10, 132, 255, .3);
+    }
+}

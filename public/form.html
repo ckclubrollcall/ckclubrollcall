@@ -70,10 +70,12 @@
 
         <div class="form-group">
           <label>指導老師是否出席</label>
-          <select id="teacherPresent">
+          <!-- 原生 select 保留但隱藏，app.js 讀寫 #teacherPresent 的邏輯不受影響 -->
+          <select id="teacherPresent" hidden>
             <option value="是">是</option>
             <option value="否">否</option>
           </select>
+          <button type="button" class="select-btn" id="teacherPresentBtn">是</button>
         </div>
 
         <div class="form-group" id="subTeacherGroup" style="display:none;">
@@ -119,6 +121,16 @@
         </div>
       </div>
 
+      <div id="teacherPresentModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 360px;">
+          <h3>指導老師是否出席</h3>
+          <div class="option-list" id="teacherPresentOptions">
+            <div class="option-item" data-value="是" role="button" tabindex="0">是</div>
+            <div class="option-item" data-value="否" role="button" tabindex="0">否</div>
+          </div>
+        </div>
+      </div>
+
       <div id="rollModal" class="modal-overlay">
         <div class="modal-content roll-modal">
           <h3>點名</h3>
@@ -156,5 +168,6 @@
 
   <script src="config.js"></script>
   <script src="app.js"></script>
+  <script src="select-modal.js"></script>
 </body>
 </html>
