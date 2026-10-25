@@ -12,7 +12,7 @@
 }
 
 :root {
-    color-scheme: light;
+    color-scheme: light dark;
 
     /* iOS 系統色（保留舊變數名稱，app.js 內聯樣式仍會引用） */
     --blue: #007aff;
@@ -970,4 +970,125 @@ footer a:active {
 @media (max-width: 380px) {
     .card { padding: 20px 14px; }
     header h1 { font-size: .95rem; }
+}
+
+
+/* =========================================================
+   暗色模式（跟隨使用者系統設定）
+   ========================================================= */
+@media (prefers-color-scheme: dark) {
+    :root {
+        color-scheme: dark;
+
+        --blue: #0a84ff;
+        --blue-lt: rgba(10, 132, 255, .18);
+        --green: #30d158;
+        --green-lt: rgba(48, 209, 88, .18);
+        --red: #ff453a;
+        --red-lt: rgba(255, 69, 58, .18);
+        --orange: #ff9f0a;
+        --ios-dark-gray: rgba(120, 120, 128, .36);
+
+        --gray-50: #1c1c1e;
+        --gray-100: rgba(120, 120, 128, .24);
+        --gray-300: rgba(235, 235, 245, .18);
+        --gray-500: #98989f;
+        --gray-700: #aeaeb2;
+        --gray-900: #f2f2f7;
+
+        --glass: rgba(44, 44, 46, .72);
+        --glass-strong: rgba(44, 44, 46, .92);
+        --glass-border: rgba(255, 255, 255, .10);
+        --hairline: rgba(84, 84, 88, .6);
+        --shadow: 0 8px 32px rgba(0, 0, 0, .45), 0 1px 2px rgba(0, 0, 0, .3);
+    }
+
+    body {
+        background: #000;
+    }
+
+    body::before {
+        background:
+            radial-gradient(60% 40% at 15% 0%, rgba(10, 132, 255, .14), transparent 70%),
+            radial-gradient(50% 35% at 100% 20%, rgba(191, 90, 242, .10), transparent 70%),
+            radial-gradient(60% 40% at 50% 100%, rgba(48, 209, 88, .08), transparent 70%),
+            #000;
+    }
+
+    .card::before {
+        box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, .06);
+    }
+
+    /* 卡片、清單、對話框 */
+    .section-card {
+        background: rgba(44, 44, 46, .92);
+    }
+
+    #studentList,
+    #recordsList,
+    .detail-card,
+    #teacherAuthArea {
+        background: rgba(44, 44, 46, .7);
+    }
+
+    .modal-content {
+        background: rgba(44, 44, 46, .96);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255, 255, 255, .06);
+    }
+
+    .modal-overlay,
+    .submit-overlay {
+        background: rgba(0, 0, 0, .5);
+    }
+
+    .submit-overlay-box {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, .6);
+    }
+
+    /* 輸入框 */
+    input:focus,
+    select:focus,
+    textarea:focus {
+        background: #1c1c1e;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+        color: rgba(235, 235, 245, .3);
+    }
+
+    /* 點名勾選圈 */
+    .student-item input[type="checkbox"] {
+        border-color: rgba(235, 235, 245, .3);
+    }
+
+    /* 按鈕 */
+    .btn-gray {
+        background: rgba(120, 120, 128, .32);
+    }
+
+    .btn-menu-green,
+    .btn-menu-blue {
+        background: rgba(44, 44, 46, .8);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .06);
+    }
+
+    .btn-menu-green:active,
+    .btn-menu-blue:active {
+        background: rgba(58, 58, 60, .95);
+    }
+
+    @media (hover: hover) {
+        .btn-menu-green:hover,
+        .btn-menu-blue:hover { background: rgba(58, 58, 60, .9); }
+    }
+
+    #sigStatus {
+        color: #30d158;
+    }
+
+    /* 紀錄列表右側箭頭 */
+    .record-item::after {
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 14' fill='none' stroke='%2363636a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1l6 6-6 6'/%3E%3C/svg%3E") center / contain no-repeat;
+    }
 }
