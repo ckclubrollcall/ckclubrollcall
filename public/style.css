@@ -1099,6 +1099,10 @@ footer a:active {
     #records-icon {
         filter: invert(1) brightness(1.2);
     }
+
+    #sigPreview {
+        filter: invert(1) brightness(1.2);
+    }
 }
 
 
