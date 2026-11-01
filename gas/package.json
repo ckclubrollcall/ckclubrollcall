@@ -1,5 +1,7 @@
 {
   "dependencies": {
-    "@google/clasp": "^3.4.1"
+    "@eslint/js": "^10.0.1",
+    "@google/clasp": "^3.4.1",
+    "eslint": "^10.14.0"
   }
 }
