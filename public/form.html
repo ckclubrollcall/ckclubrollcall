@@ -8,10 +8,6 @@
       rel="icon"
       href="https://raw.githubusercontent.com/ckclubrollcall/ckclubrollcall/refs/heads/main/images/%E7%A4%BE.png"
     />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.2/font/bootstrap-icons.min.css"
-    />
     <meta property="og:title" content="建中社團線上點名系統" />
     <meta property="og:description" content="請使用@gl.ck.tp.edu.tw帳號填寫" />
     <meta
@@ -53,45 +49,50 @@
         <input type="hidden" id="fillerName" />
         <input type="hidden" id="fillerInfo" />
 
+      <!-- 卡片 1：基本資料 -->
+      <section class="section-card">
+        <h2 class="section-title">基本資料</h2>
+
         <div class="form-group">
           <label>社團</label>
-          <input type="text" id="identityClubName" readonly />
+          <input type="text" id="identityClubName" readonly>
         </div>
 
         <div class="form-group">
           <label>社課日期</label>
-          <input type="date" id="date" />
+          <input type="date" id="date">
         </div>
 
         <div class="form-group">
           <label>填寫人</label>
-          <input type="text" id="identityWriter" readonly />
+          <input type="text" id="identityWriter" readonly>
         </div>
+      </section>
 
-        <hr class="divider" />
+      <!-- 卡片 2：社課紀錄與簽名 -->
+      <section class="section-card">
+        <h2 class="section-title">社課紀錄</h2>
 
         <div class="form-group">
           <label>社課內容簡述</label>
-          <textarea
-            id="desc"
-            placeholder="請簡述今日社課內容…"
-            maxlength="200"
-          ></textarea>
+          <textarea id="desc" placeholder="請簡述今日社課內容…" maxlength="200"></textarea>
           <div class="char-counter" id="descCounter">0 / 200</div>
         </div>
 
         <div class="form-group">
           <label>指導老師是否出席</label>
-          <select id="teacherPresent">
+          <!-- 原生 select 保留但隱藏，app.js 讀寫 #teacherPresent 的邏輯不受影響 -->
+          <select id="teacherPresent" hidden>
             <option value="是">是</option>
             <option value="否">否</option>
           </select>
+          <button type="button" class="select-btn" id="teacherPresentBtn">是</button>
         </div>
 
-        <div class="form-group" id="subTeacherGroup" style="display: none">
+        <div class="form-group" id="subTeacherGroup" style="display:none;">
           <label>代課老師姓名</label>
           <span class="hint">若無代課老師請保留「無」</span>
-          <input type="text" id="subTeacher" value="無" maxlength="30" />
+          <input type="text" id="subTeacher" value="無" maxlength="30">
         </div>
 
         <div class="form-group">
@@ -99,61 +100,62 @@
           <button id="sigOpenBtn" type="button">點擊開啟簽名板</button>
           <div id="sigStatus">尚未簽名</div>
         </div>
+      </section>
 
-        <div id="sigModal" class="modal-overlay">
-          <div class="modal-content">
-            <h3 id="sigModalTitle">老師請在此簽名</h3>
-            <canvas id="sigCanvas"></canvas>
-            <div class="btn-group">
-              <button class="btn btn-red" id="sigClearBtn" type="button">
-                清除重簽
-              </button>
-              <button class="btn btn-green" id="sigCloseBtn" type="button">
-                確認並關閉
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <hr class="divider" />
+      <!-- 卡片 3：點名 -->
+      <section class="section-card">
+        <h2 class="section-title">點名</h2>
 
         <div class="form-group">
-          <label
-            >點名區
-            <span
-              id="attendCount"
-              style="
-                font-weight: 400;
-                color: var(--gray-500);
-                font-size: 0.85rem;
-              "
-            ></span
-          ></label>
-          <div
-            id="studentList"
-            style="text-align: left; padding: 24px; color: var(--gray-500)"
-          >
-            <div class="spinner" style="margin: 0 auto 10px"></div>
-            載入中…
+          <label>點名區 <span id="attendCount" style="font-weight:400;color:var(--gray-500);font-size:.85rem;"></span></label>
+          <button id="rollOpenBtn" type="button">點擊開啟點名表</button>
+        </div>
+      </section>
+
+      <button class="btn btn-submit" id="submitBtn">確認送出</button>
+      <p style="text-align:center;margin-top:10px;">
+        <a href="#" id="formFooterLink"
+          style="font-size:.78rem;color:var(--gray-500);text-decoration:underline;">
+          返回
+        </a>
+      </p>
+      </div><!-- /#formArea -->
+    </div><!-- /.card -->
+
+      <!-- 彈出視窗（放在卡片外，避免被卡片的樣式影響 fixed 定位） -->
+      <div id="sigModal" class="modal-overlay">
+        <div class="modal-content">
+          <h3 id="sigModalTitle">老師請在此簽名</h3>
+          <canvas id="sigCanvas"></canvas>
+          <div class="btn-group">
+            <button class="btn btn-red" id="sigClearBtn" type="button">清除重簽</button>
+            <button class="btn btn-green" id="sigCloseBtn" type="button">確認並關閉</button>
           </div>
         </div>
-
-        <button class="btn btn-submit" id="submitBtn">確認送出</button>
-        <p style="text-align: center; margin-top: 10px">
-          <a
-            href="#"
-            id="formFooterLink"
-            style="
-              font-size: 0.78rem;
-              color: var(--gray-500);
-              text-decoration: underline;
-            "
-          >
-            返回
-          </a>
-        </p>
       </div>
-    </div>
+
+      <div id="teacherPresentModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 360px;">
+          <h3>指導老師是否出席</h3>
+          <div class="option-list" id="teacherPresentOptions">
+            <div class="option-item" data-value="是" role="button" tabindex="0">是</div>
+            <div class="option-item" data-value="否" role="button" tabindex="0">否</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="rollModal" class="modal-overlay">
+        <div class="modal-content roll-modal">
+          <h3>點名</h3>
+          <div class="roll-count" id="attendCountModal"></div>
+          <div id="studentList" style="text-align:left;padding:24px;color:var(--gray-500);">
+            <div class="spinner" style="margin:0 auto 10px;"></div>載入中…
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-green" id="rollCloseBtn" type="button">完成</button>
+          </div>
+        </div>
+      </div>
 
     <footer>開發人員：社團點名系統維護小組</footer>
 
@@ -203,7 +205,9 @@
       </div>
     </div>
 
-    <script src="config.js"></script>
-    <script src="app.js"></script>
-  </body>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+  <script src="select-modal.js"></script>
+  <script src="roll-feedback.js"></script>
+</body>
 </html>
