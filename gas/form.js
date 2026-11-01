@@ -1,7 +1,7 @@
 // ==========================================
 // 0. 系統規格設定與安全常數
 // ==========================================
-var SECURITY = {
+const SECURITY = {
   MAX_DESC_LEN: 200,   // 社課內容簡述最大字數
   MAX_TEACHER_LEN: 30,    // 代課老師姓名最大字數
   MAX_CLUB_LEN: 30,    // 社團名稱最大字數
@@ -19,15 +19,16 @@ var SECURITY = {
  * 過濾 HTML 標籤與防止公式注入，保護試算表安全。
  */
 function sanitize(val, maxLen) {
-  if (val === null || val === undefined) return "";
-  var s = String(val)
+  if (val === null || val === undefined) { return ""; }
+  let s = String(val)
+    // eslint-disable-next-line no-control-regex
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "") // 去除不可見的控制字元
     .replace(/[<>]/g, "")      // 去除大於小於符號，防範網頁腳本注入
     .replace(/[=+\-@|`]/g, function (c) {   // 若開頭為試算表公式字元，前面加零寬字元避免公式執行
       return "\u200B" + c;
     })
     .trim();
-  if (maxLen && s.length > maxLen) s = s.slice(0, maxLen);
+  if (maxLen && s.length > maxLen) { s = s.slice(0, maxLen); }
   return s;
 }
 
@@ -35,8 +36,8 @@ function sanitize(val, maxLen) {
  * 檢查電子郵件信箱格式是否正確
  */
 function isValidEmail(email) {
-  if (!email || typeof email !== "string") return false;
-  if (email.length > SECURITY.MAX_EMAIL_LEN) return false;
+  if (!email || typeof email !== "string") { return false; }
+  if (email.length > SECURITY.MAX_EMAIL_LEN) { return false; }
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
@@ -44,14 +45,14 @@ function isValidEmail(email) {
  * 檢查點名日期是否在允許的 5 天範圍內
  */
 function isValidDate(dateStr) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
-  var d = new Date(dateStr.replace(/-/g, "/"));
-  if (isNaN(d.getTime())) return false;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) { return false; }
+  const d = new Date(dateStr.replace(/-/g, "/"));
+  if (isNaN(d.getTime())) { return false; }
 
-  var today = new Date();
+  const today = new Date();
   today.setHours(23, 59, 59, 999); // 設定為今天結束前的最後一刻
 
-  var minDate = new Date();
+  const minDate = new Date();
   minDate.setDate(minDate.getDate() - SECURITY.ALLOWED_DATE_RANGE);
   minDate.setHours(0, 0, 0, 0); // 設定為 5 天前的起始時刻
 
@@ -69,12 +70,12 @@ function isOfficer(remark) {
  * 限制同一用戶的點名頻率，限制 60 秒內不得重複提交
  */
 function checkAndSetCooldown(email) {
-  var props = PropertiesService.getScriptProperties();
-  var key = "submit_ts_" + email.replace(/[^a-zA-Z0-9]/g, "_");
-  var lastTs = props.getProperty(key);
+  const props = PropertiesService.getScriptProperties();
+  const key = "submit_ts_" + email.replace(/[^a-zA-Z0-9]/g, "_");
+  const lastTs = props.getProperty(key);
 
   if (lastTs) {
-    var elapsed = (Date.now() - parseInt(lastTs, 10)) / 1000;
+    const elapsed = (Date.now() - parseInt(lastTs, 10)) / 1000;
     if (elapsed < SECURITY.SUBMIT_COOLDOWN_SEC) {
       return false; // 仍在冷卻中
     }
@@ -86,25 +87,27 @@ function checkAndSetCooldown(email) {
 /**
  * 自動過濾並解析雲端硬碟資料夾的 URL 取得實體 ID
  */
+// eslint-disable-next-line no-redeclare
 function parseDriveId(rawValue) {
-  if (!rawValue) return null;
-  var match = rawValue.toString().trim().match(/folders\/([a-zA-Z0-9-_]+)/);
+  if (!rawValue) { return null; }
+  const match = rawValue.toString().trim().match(/folders\/([a-zA-Z0-9-_]+)/);
   return match ? match[1] : rawValue.toString().trim();
 }
 
 /**
  * 寫入錯誤日誌至 Google 試算表，方便管理者除錯
  */
+// eslint-disable-next-line no-redeclare
 function logToSheet(msg) {
   try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName("系統日誌");
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName("系統日誌");
     if (!sheet) {
       sheet = ss.insertSheet("系統日誌");
       sheet.appendRow(["時間", "日誌內容"]);
     }
     sheet.appendRow([new Date(), String(msg)]);
-  } catch (e) {
+  } catch {
     // 靜默失敗，防止日誌功能出錯導致主程式崩潰
   }
 }
@@ -122,13 +125,13 @@ function verifyIdToken(idToken) {
     return null;
   }
   try {
-    var url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + encodeURIComponent(idToken);
-    var response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+    const url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + encodeURIComponent(idToken);
+    const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
     if (response.getResponseCode() !== 200) {
       return null;
     }
-    var payload = JSON.parse(response.getContentText());
-    var expectedClientId = PropertiesService.getScriptProperties().getProperty("OAUTH_CLIENT_ID");
+    const payload = JSON.parse(response.getContentText());
+    const expectedClientId = PropertiesService.getScriptProperties().getProperty("OAUTH_CLIENT_ID");
     if (payload.aud !== expectedClientId) {
       logToSheet("Client ID 不符。");
       return null;
@@ -176,11 +179,12 @@ function authenticateRequest(token) {
 /**
  * 取得「系統設定」試算表 B1 格中所儲存的手寫簽名存檔雲端資料夾 ID
  */
+// eslint-disable-next-line no-redeclare
 function getSignFolderId() {
   try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var raw = ss.getSheetByName("系統設定").getRange("B1").getValue();
-    if (!raw) throw new Error("「系統設定」工作表的 B1 儲存格不可以是空白！");
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const raw = ss.getSheetByName("系統設定").getRange("B1").getValue();
+    if (!raw) { throw new Error("「系統設定」工作表的 B1 儲存格不可以是空白！"); }
     return parseDriveId(raw);
   } catch (e) {
     SpreadsheetApp.getUi().alert("❌ 系統設定錯誤：" + e.message);
@@ -205,18 +209,18 @@ function getLoginUserExternal(email) {
     return { error: true };
   }
 
-  var studentId = "";
-  var match = email.match(/^ck(\d+)/i); // 建中信箱前綴常為 ck + 學號
-  if (match) studentId = match[1];
+  let studentId = "";
+  const match = email.match(/^ck(\d+)/i); // 建中信箱前綴常為 ck + 學號
+  if (match) { studentId = match[1]; }
 
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("原始名單");
-  var data = sheet.getDataRange().getValues();
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("原始名單");
+  const data = sheet.getDataRange().getValues();
 
-  var COL = { CLASS: 0, NO: 1, NAME: 2, ID: 3, REMARK: 4, CLUB_ID: 5, CLUB: 6 };
+  const COL = { CLASS: 0, NO: 1, NAME: 2, ID: 3, REMARK: 4, CLUB_ID: 5, CLUB: 6 };
 
-  for (var i = 1; i < data.length; i++) {
+  for (let i = 1; i < data.length; i++) { // FIXME: Low efficiency, can be optimized.
     if (String(data[i][COL.ID]) === studentId) {
-      var remark = data[i][COL.REMARK] || "社員";
+      const remark = data[i][COL.REMARK] || "社員";
       return {
         email: email,
         id: studentId,
@@ -244,16 +248,16 @@ function getLoginUserExternal(email) {
  * 支援模糊名稱與編號自動對照。
  */
 function getClubMembers(clubName) {
-  var safeClub = sanitize(clubName, SECURITY.MAX_CLUB_LEN).trim();
-  if (!safeClub) return [];
+  const safeClub = sanitize(clubName, SECURITY.MAX_CLUB_LEN).trim();
+  if (!safeClub) { return []; }
 
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("原始名單");
-  var data = sheet.getDataRange().getValues();
-  var students = [];
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("原始名單");
+  const data = sheet.getDataRange().getValues();
+  const students = [];
 
-  for (var i = 1; i < data.length; i++) {
-    var sheetClub = data[i][6] ? String(data[i][6]).trim() : "";
-    var sheetClubId = data[i][5] ? String(data[i][5]).trim() : "";
+  for (let i = 1; i < data.length; i++) {
+    const sheetClub = data[i][6] ? String(data[i][6]).trim() : "";
+    const sheetClubId = data[i][5] ? String(data[i][5]).trim() : "";
     if (sheetClub === safeClub || sheetClubId === safeClub || sheetClub.toLowerCase() === safeClub.toLowerCase() || sheetClubId.toLowerCase() === safeClub.toLowerCase()) {
       students.push({
         class: data[i][0],
@@ -273,9 +277,9 @@ function getClubMembers(clubName) {
 }
 
 function formatDateLocal(date) {
-  var y = date.getFullYear();
-  var m = date.getMonth() + 1;
-  var d = date.getDate();
+  const y = date.getFullYear();
+  const m = date.getMonth() + 1;
+  const d = date.getDate();
   return y + "-" + (m < 10 ? "0" : "") + m + "-" + (d < 10 ? "0" : "") + d;
 }
 
@@ -283,24 +287,24 @@ function formatDateLocal(date) {
  * 抓取指定社團在歷史上的所有最新點名紀錄行（過濾舊紀錄）
  */
 function getLatestRowsByClub(club) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("點名紀錄");
-  var range = sheet.getDataRange();
-  var data = range.getValues();
-  var richTexts = range.getRichTextValues();
-  var latest = {}; // 鍵值為 yyyy-MM-dd，數值為該日期最新的紀錄行
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("點名紀錄");
+  const range = sheet.getDataRange();
+  const data = range.getValues();
+  const richTexts = range.getRichTextValues();
+  const latest = {}; // 鍵值為 yyyy-MM-dd，數值為該日期最新的紀錄行
 
-  for (var i = 1; i < data.length; i++) {
-    if (String(data[i][2]) !== club) continue;
-    var dDate = data[i][3];
-    if (!(dDate instanceof Date)) continue;
-    var key = formatDateLocal(dDate);
-    var ts = data[i][0] instanceof Date ? data[i][0].getTime() : 0;
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][2]) !== club) { continue; }
+    const dDate = data[i][3];
+    if (!(dDate instanceof Date)) { continue; }
+    const key = formatDateLocal(dDate);
+    const ts = data[i][0] instanceof Date ? data[i][0].getTime() : 0;
 
     // 若同一日期有重覆提交，只保留時間戳記最新的一筆
     if (!latest[key] || ts > latest[key]._ts) {
       // 支援 Google Drive 檔案智慧方塊：先自 richText 提取 URL，無則使用儲存格值
-      var sigRichText = (richTexts && richTexts[i] && richTexts[i][10]) ? richTexts[i][10].getLinkUrl() : null;
-      var sigValue = sigRichText || (data[i][10] ? String(data[i][10]).trim() : "");
+      const sigRichText = (richTexts && richTexts[i] && richTexts[i][10]) ? richTexts[i][10].getLinkUrl() : null;
+      const sigValue = sigRichText || (data[i][10] ? String(data[i][10]).trim() : "");
 
       latest[key] = {
         _ts: ts,
@@ -332,12 +336,12 @@ function isWithinEditableRange(dateStr) {
  * 取得該社團歷史上所有點名紀錄之列表概要，提供前台選單呈現
  */
 function getAttendanceList(club) {
-  var safeClub = sanitize(club, SECURITY.MAX_CLUB_LEN);
-  if (!safeClub) return [];
-  var latest = getLatestRowsByClub(safeClub);
+  const safeClub = sanitize(club, SECURITY.MAX_CLUB_LEN);
+  if (!safeClub) { return []; }
+  const latest = getLatestRowsByClub(safeClub);
 
-  var list = Object.keys(latest).map(function (key) {
-    var r = latest[key];
+  const list = Object.keys(latest).map(function (key) {
+    const r = latest[key];
     return {
       date: r.date,
       fillerName: r.fillerName,
@@ -355,10 +359,10 @@ function getAttendanceList(club) {
  * 取得指定社團於指定日期點名之詳細完整資訊
  */
 function getAttendanceDetail(club, date) {
-  var safeClub = sanitize(club, SECURITY.MAX_CLUB_LEN);
-  var latest = getLatestRowsByClub(safeClub);
-  var r = latest[date];
-  if (!r) return { status: "error", message: "找不到該日期的紀錄" };
+  const safeClub = sanitize(club, SECURITY.MAX_CLUB_LEN);
+  const latest = getLatestRowsByClub(safeClub);
+  const r = latest[date];
+  if (!r) { return { status: "error", message: "找不到該日期的紀錄" }; }
   r.editable = isWithinEditableRange(r.date);
   return r;
 }
@@ -367,16 +371,16 @@ function getAttendanceDetail(club, date) {
  * 供一般社員查詢個人專屬的出缺席記錄歷史
  */
 function getMyAttendance(club, identity) {
-  var safeClub = sanitize(club, SECURITY.MAX_CLUB_LEN);
-  var safeIdentity = sanitize(identity, 30);
-  if (!safeClub || !safeIdentity) return [];
+  const safeClub = sanitize(club, SECURITY.MAX_CLUB_LEN);
+  const safeIdentity = sanitize(identity, 30);
+  if (!safeClub || !safeIdentity) { return []; }
 
-  var latest = getLatestRowsByClub(safeClub);
+  const latest = getLatestRowsByClub(safeClub);
 
   return Object.keys(latest).map(function (key) {
-    var r = latest[key];
-    var absentLines = String(r.absentList || "").split("\n");
-    var isAbsent = absentLines.indexOf(safeIdentity) !== -1; // 檢查缺席清單是否有自己
+    const r = latest[key];
+    const absentLines = String(r.absentList || "").split("\n");
+    const isAbsent = absentLines.indexOf(safeIdentity) !== -1; // 檢查缺席清單是否有自己
     return { date: r.date, status: isAbsent ? "缺席" : "出席" };
   }).sort(function (a, b) { return a.date < b.date ? 1 : -1; });
 }
@@ -385,23 +389,23 @@ function getMyAttendance(club, identity) {
  * 將前端傳入的點名資訊進行安全性驗證，並上傳老師手寫簽名，最後寫入試算表新列
  */
 function submitAttendance(data) {
-  if (!data) return { status: "error", message: "資料不完整" };
+  if (!data) { return { status: "error", message: "資料不完整" }; }
 
-  var lock = LockService.getScriptLock();
+  const lock = LockService.getScriptLock();
   if (!lock.tryLock(5000)) {
     return { status: "error", message: "系統忙碌，請稍後再試" };
   }
 
   try {
-    var safeEmail = "";
+    let safeEmail = "";
     if (data.email && data.email !== "") {
-      if (!isValidEmail(data.email)) return { status: "error", message: "Email 格式不正確" };
+      if (!isValidEmail(data.email)) { return { status: "error", message: "Email 格式不正確" }; }
       safeEmail = data.email;
     }
 
     // 1. 優先檢查提交頻率，避免短時間內重複送出。
     // 沿用原本的識別方式：優先使用 safeEmail，否則使用填寫者資訊。
-    var cooldownKey = safeEmail || (data.fillerInfo || "anonymous");
+    const cooldownKey = safeEmail || (data.fillerInfo || "anonymous");
 
     if (!checkAndSetCooldown(cooldownKey)) {
       return {
@@ -420,25 +424,25 @@ function submitAttendance(data) {
     }
 
     // 3. 清洗文字內容，並限制各欄位長度。
-    var safeDesc = sanitize(
+    const safeDesc = sanitize(
       data.desc,
       SECURITY.MAX_DESC_LEN
     );
 
-    var safeSubTeacher = sanitize(
+    const safeSubTeacher = sanitize(
       data.subTeacher,
       SECURITY.MAX_TEACHER_LEN
     );
 
-    var safeClub = sanitize(
+    const safeClub = sanitize(
       data.club,
       SECURITY.MAX_CLUB_LEN
     );
 
-    var safeFillerInfo = sanitize(data.fillerInfo, 60);
-    var safeFillerName = sanitize(data.fillerName, 20);
+    const safeFillerInfo = sanitize(data.fillerInfo, 60);
+    const safeFillerName = sanitize(data.fillerName, 20);
 
-    var safeTeacherPresent = (data.teacherPresent === "否") ? "否" : "是";
+    const safeTeacherPresent = (data.teacherPresent === "否") ? "否" : "是";
 
 
     // 4. 驗證必填欄位。
@@ -451,7 +455,7 @@ function submitAttendance(data) {
 
 
     // 5. 取得該社團的正式名單。
-    var members = getClubMembers(safeClub);
+    const members = getClubMembers(safeClub);
 
     if (!members || !members.length) {
       return {
@@ -463,10 +467,10 @@ function submitAttendance(data) {
 
     // 6. 建立正式名單索引。
     // 使用無原型物件，讓查找只依據實際加入的學生身分。
-    var memberMap = Object.create(null);
+    const memberMap = Object.create(null);
 
     members.forEach(function (m) {
-      var identity = sanitize(
+      const identity = sanitize(
         m.class + " " + m.no + " " + m.name,
         30
       );
@@ -476,12 +480,12 @@ function submitAttendance(data) {
 
 
     // 7. 處理缺席名單：限制行數、清洗、驗證及去重。
-    var absentIdentities = [];
-    var seen = Object.create(null);
+    const absentIdentities = [];
+    const seen = Object.create(null);
 
     if (data.absentList && data.absentList !== "全勤") {
       // 同時處理 Windows、Unix 與舊式 Mac 換行。
-      var absentLines = String(data.absentList).split(/\r\n|\n|\r/);
+      let absentLines = String(data.absentList).split(/\r\n|\n|\r/);
 
       // 不直接截斷，避免遺漏缺席學生後仍繼續計算出席人數。
       if (absentLines.length > 200) {
@@ -499,8 +503,8 @@ function submitAttendance(data) {
           return line.length > 0;
         });
 
-      for (var i = 0; i < absentLines.length; i++) {
-        var identity = absentLines[i];
+      for (let i = 0; i < absentLines.length; i++) {
+        const identity = absentLines[i];
 
         if (!memberMap[identity]) {
           return {
@@ -518,18 +522,18 @@ function submitAttendance(data) {
 
     // 8. 產生最終缺席名單，並由正式名單推算出席人數。
     // 不採用前端傳入的 data.presentCount。
-    var safeAbsentList = absentIdentities.length
+    const safeAbsentList = absentIdentities.length
       ? absentIdentities.join("\n")
       : "全勤";
-    var safePresentCount = members.length - absentIdentities.length;
+    const safePresentCount = members.length - absentIdentities.length;
 
     // 9. 檢查既有紀錄以判定「紀錄類別」（新增 vs 編輯），防範前端偽造傳遞值
-    var existingRecords = getLatestRowsByClub(safeClub);
-    var isEdit = !!existingRecords[data.date];
-    var recordType = isEdit ? "編輯" : "新增";
+    const existingRecords = getLatestRowsByClub(safeClub);
+    const isEdit = !!existingRecords[data.date];
+    const recordType = isEdit ? "編輯" : "新增";
 
     // 10. 驗證簽名：徹底廢止 KEEP 邏輯，修改點名紀錄者必須重新簽名
-    if (data.signature === 'KEEP') {
+    if (data.signature === "KEEP") {
       return { status: "error", message: "修改點名紀錄必須重新簽名，不可沿用原簽名" };
     }
 
@@ -545,22 +549,22 @@ function submitAttendance(data) {
       return { status: "error", message: "簽名格式不正確" };
     }
 
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName("點名紀錄");
-    var formattedDate = new Date(data.date.replace(/-/g, "/"));
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName("點名紀錄");
+    const formattedDate = new Date(data.date.replace(/-/g, "/"));
 
     // 11. 將 Base64 格式轉回 PNG 圖檔，並依類別命名後寫入指定 Google Drive 資料夾
-    var folderId = getSignFolderId();
-    var folder = DriveApp.getFolderById(folderId);
-    var base64 = data.signature.split(",")[1];
-    var fileName = data.date + "_" + safeClub + (isEdit ? "_修改者簽名.png" : "_老師簽名.png");
-    var blob = Utilities.newBlob(Utilities.base64Decode(base64), "image/png", fileName);
-    var file = folder.createFile(blob);
-    var fileUrl = file.getUrl(); // 取得檔案的公開/內部連結
+    const folderId = getSignFolderId();
+    const folder = DriveApp.getFolderById(folderId);
+    const base64 = data.signature.split(",")[1];
+    const fileName = data.date + "_" + safeClub + (isEdit ? "_修改者簽名.png" : "_老師簽名.png");
+    const blob = Utilities.newBlob(Utilities.base64Decode(base64), "image/png", fileName);
+    const file = folder.createFile(blob);
+    const fileUrl = file.getUrl(); // 取得檔案的公開/內部連結
 
     // 確保點名紀錄標題列包含第 L 欄「紀錄類別」
     if (sheet.getLastRow() >= 1) {
-      var headerL = sheet.getRange(1, 12).getValue();
+      const headerL = sheet.getRange(1, 12).getValue();
       if (!headerL) {
         sheet.getRange(1, 12).setValue("紀錄類別");
       }
@@ -582,15 +586,15 @@ function submitAttendance(data) {
       recordType             // L: 紀錄類別 (新增 / 編輯)
     ]);
 
-    var lastRow = sheet.getLastRow();
+    const lastRow = sheet.getLastRow();
 
     // 12. 優先使用 Google Sheets API (v4 batchUpdate chipRuns) 產生 Google Drive 檔案智慧方塊
     try {
       if (typeof Sheets !== "undefined" && Sheets.Spreadsheets && fileUrl) {
-        var spreadsheetId = ss.getId();
-        var sheetId = sheet.getSheetId();
-        var rowIndex = lastRow - 1; // 0-indexed
-        var colIndex = 10;          // K 欄為第 11 欄 -> 0-indexed 為 10
+        const spreadsheetId = ss.getId();
+        const sheetId = sheet.getSheetId();
+        const rowIndex = lastRow - 1; // 0-indexed
+        const colIndex = 10;          // K 欄為第 11 欄 -> 0-indexed 為 10
 
         Sheets.Spreadsheets.batchUpdate({
           requests: [{
@@ -639,15 +643,17 @@ function submitAttendance(data) {
  * 格式化與回傳 JSON 格式字串並附加 CORS 標頭，允許跨網域存取
  */
 function jsonResponse(data, headers) {
-  var output = ContentService
+  const output = ContentService
     .createTextOutput(JSON.stringify(data))
-    .setMimeType(ContentService.MimeType.JSON);
+    .setMimeType(ContentService.MimeType.JSON)
+    ;
   return output;
 }
 
 /**
  * 響應 HTTP GET 請求 (純提示)
  */
+// eslint-disable-next-line no-unused-vars
 function doGet(e) {
   return ContentService.createTextOutput("建中社團點名系統 API endpoint. 請使用 POST 方法存取。");
 }
@@ -656,8 +662,9 @@ function doGet(e) {
  * 核心 Web API 控制器
  * 接收從網頁前端發過來的 POST 請求，並根據 action 指令轉發至對應處理函式。
  */
+// eslint-disable-next-line no-unused-vars
 function doPost(e) {
-  var corsHeaders = {
+  const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type"
@@ -717,7 +724,7 @@ function doPost(e) {
         if (auth.user.club !== req.club) {
           return jsonResponse({ status: "error", message: "無權限查看此社團的出缺席紀錄" }, corsHeaders);
         }
-        var expectedIdentity = auth.user.class + " " + auth.user.no + " " + auth.user.name;
+        let expectedIdentity = auth.user.class + " " + auth.user.no + " " + auth.user.name;
         if (auth.user.id === "TEST_USER") {
           expectedIdentity = req.identity;
         }
@@ -728,11 +735,12 @@ function doPost(e) {
       } else {
         result = { status: "error", message: "未知的操作指令" };
       }
+
+      return jsonResponse(result, corsHeaders);
+
     }
-
-    return jsonResponse(result, corsHeaders);
-
   } catch (err) {
+    logToSheet("doPost 錯誤: " + err.toString());
     return jsonResponse({ status: "error", message: "請求處理失敗，請稍後再試" }, corsHeaders);
   }
 }
