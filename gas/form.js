@@ -143,119 +143,27 @@ function verifyIdToken(idToken) {
   }
 }
 
-// 金鑰：加密安全，防止偽造 Token
-var TEST_TOKEN_SECRET = PropertiesService.getScriptProperties().getProperty("TEST_TOKEN_SECRET") || "ck-club-rollcall-fallback-secret-2026";
-
-/**
- * SHA256 加密計算工具，用於密碼安全比對與 Token 簽章
- */
-function sha256(input) {
-  var rawHash = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, input, Utilities.Charset.UTF_8);
-  var output = "";
-  for (var i = 0; i < rawHash.length; i++) {
-    var value = rawHash[i];
-    if (value < 0) value += 256;
-    var byteString = value.toString(16);
-    if (byteString.length == 1) byteString = "0" + byteString;
-    output += byteString;
-  }
-  return output;
-}
-
-/**
- * 建立測試登入的專屬加密 Token（時效 14 天）
- * 把登入時查到的完整身分資料都簽進 Token，
- * 之後不管重新驗證幾次，都能還原出「跟第一次登入時一模一樣」的資料，
- * 不需要再用假資料重建。
- */
-function generateTestToken(userInfo) {
-  var expiry = Date.now() + 14 * 24 * 60 * 60 * 1000;
-  var payload = JSON.stringify({
-    email: userInfo.email,
-    club: userInfo.club,
-    clubId: userInfo.clubId,
-    name: userInfo.name,
-    remark: userInfo.remark,
-    exp: expiry
-  });
-  // 明確指定 UTF-8，確保中文字不會在 Base64 編碼時損毀
-  var signature = Utilities.computeHmacSignature(Utilities.MacAlgorithm.HMAC_SHA_256, payload, TEST_TOKEN_SECRET, Utilities.Charset.UTF_8);
-  var sigStr = Utilities.base64Encode(signature);
-  return "TEST_" + Utilities.base64Encode(payload, Utilities.Charset.UTF_8) + "." + sigStr;
-}
-
-/**
- * 驗證並解密測試登入 Token
- */
-function verifyTestToken(token) {
-  if (!token || !token.startsWith("TEST_")) return null;
-  try {
-    var parts = token.substring(5).split(".");
-    if (parts.length !== 2) return null;
-    // 明確指定 UTF-8，與 generateTestToken 的編碼方式一致
-    var payloadStr = Utilities.newBlob(Utilities.base64Decode(parts[0])).getDataAsString("UTF-8");
-    var expectedSig = Utilities.computeHmacSignature(Utilities.MacAlgorithm.HMAC_SHA_256, payloadStr, TEST_TOKEN_SECRET, Utilities.Charset.UTF_8);
-    var expectedSigStr = Utilities.base64Encode(expectedSig);
-    if (parts[1] !== expectedSigStr) return null; // 憑證遭人修改
-
-    var obj = JSON.parse(payloadStr);
-    if (Date.now() > obj.exp) return null; // 憑證過期
-    return obj; // 內含 email / club / clubId / name / remark
-  } catch (e) {
-    logToSheet("verifyTestToken 錯誤: " + e.toString());
-    return null;
-  }
-}
-
 /**
  * 統一 API 請求的身分認證入口
  */
 function authenticateRequest(token) {
-  if (!token) return { error: true, msg: "未提供憑證，請重新登入" };
+  if (!token) { return { error: true, msg: "未提供憑證，請重新登入" }; }
 
-  var email = null;
-  var isTestUser = false;
-  var testPayload = null;
+  let email;
 
-  if (token.startsWith("TEST_")) {
-    testPayload = verifyTestToken(token);
-    if (!testPayload) {
-      return { error: true, needLogout: true, msg: "測試登入憑證已過期或無效，請重新登入" };
-    }
-    email = testPayload.email;
-    isTestUser = true;
-  } else {
+  try {
     email = verifyIdToken(token);
     if (!email) {
       return { error: true, needLogout: true, msg: "Google 登入憑證已過期或無效，請重新登入" };
     }
+  } catch (e) {
+    logToSheet("authenticateRequest 錯誤: " + e.toString());
+    return { error: true, needLogout: true, msg: "Google 登入憑證驗證失敗，請重新登入" };
   }
 
-  var user = getLoginUserExternal(email);
-  if (user.needManualLogin && !isTestUser) {
-    return { error: false, user: { needManualLogin: true, defaultEmail: email } };
-  }
-
-  if (isTestUser) {
-    // 直接還原 Token 裡簽署的完整資料，跟當初登入時一字不差，
-    // 不再用「測試人員」這種假資料覆蓋掉真實姓名/社團代碼
-    user = {
-      email: testPayload.email,
-      id: "TEST_USER",
-      class: "000",
-      no: "00",
-      name: testPayload.name,
-      club: testPayload.club,
-      clubId: testPayload.clubId,
-      remark: testPayload.remark,
-      fillerInfo: testPayload.remark + "-" + testPayload.name
-    };
-    return { error: false, user: user };
-  }
-
-  user = getLoginUserExternal(email);
-  if (user.needManualLogin && !isTestUser) {
-    return { error: false, user: { needManualLogin: true, defaultEmail: email } };
+  const user = getLoginUserExternal(email);
+  if (user.error) {
+    return { error: true, msg: "使用者資料讀取失敗，請聯絡管理員" };
   }
 
   return { error: false, user: user };
@@ -289,12 +197,12 @@ function getSignFolderId() {
  * 以 Google 信箱於試算表「原始名單」中檢索其學生資訊與角色
  */
 function getLoginUserExternal(email) {
-  if (!isValidEmail(email)) return { needManualLogin: true };
+  if (!isValidEmail(email)) { return { error: true }; }
 
   // 強制檢查網域，只允許建中官方網域帳號 @gl.ck.tp.edu.tw 登入
   if (!email.toLowerCase().endsWith("@gl.ck.tp.edu.tw")) {
     logToSheet("拒絕非官方網域登入嘗試: " + email);
-    return { needManualLogin: true };
+    return { error: true };
   }
 
   var studentId = "";
@@ -323,102 +231,8 @@ function getLoginUserExternal(email) {
     }
   }
 
-  return { needManualLogin: true, defaultEmail: email };
-}
-
-/**
- * 外部非官方帳號測試登入處理
- * 會自動規格化使用者輸入的社團名稱/編號，提高測試登入成功率。
- */
-function verifyTestLogin(inputEmail, inputPassword, inputClub, inputIdentity) {
-  if (!checkAndSetCooldown("login_try_" + inputEmail)) {
-    return { error: true, msg: "嘗試登入過於頻繁，請等待 60 秒後再試" };
-  }
-  if (!isValidEmail(inputEmail)) return { error: true, msg: "Email 格式不正確" };
-  if (!inputPassword || typeof inputPassword !== "string" || inputPassword.length > 100) {
-    return { error: true, msg: "密碼格式不正確" };
-  }
-  var safeClub = sanitize(inputClub, SECURITY.MAX_CLUB_LEN);
-  if (!safeClub) return { error: true, msg: "社團名稱不可為空" };
-
-  var safeIdentity = (inputIdentity === "社員") ? "社員" : "幹部";
-
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("系統設定");
-  var data = sheet.getDataRange().getValues();
-
-  for (var i = 4; i < data.length; i++) {
-    var rowEmail = data[i][0] ? data[i][0].toString().trim().toLowerCase() : "";
-    if (rowEmail === inputEmail.toLowerCase()) {
-      var teacherName = data[i][1] ? data[i][1].toString().trim() : "測試人員";
-      var correctPassword = data[i][2] ? data[i][2].toString().trim() : "";
-
-      // 雜湊比對密碼
-      var inputPasswordHash = sha256(inputPassword);
-      if (inputPasswordHash !== correctPassword.toString().trim().toLowerCase()) {
-        return { error: true, msg: "密碼錯誤！請重新確認。" };
-      }
-
-      var remarkVal = "外部登入_" + safeIdentity;
-
-      // 尋找最相符的社團官方名稱與編號 (進行自動模糊容錯比對)
-      var normalizedClub = safeClub;
-      var normalizedClubId = "測試";
-      try {
-        var memberSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("原始名單");
-        if (memberSheet) {
-          var memberData = memberSheet.getDataRange().getValues();
-          var foundExact = false;
-          var foundPartial = false;
-          var partialClub = "";
-          var partialClubId = "";
-          for (var j = 1; j < memberData.length; j++) {
-            var sheetClub = memberData[j][6] ? String(memberData[j][6]).trim() : "";
-            var sheetClubId = memberData[j][5] ? String(memberData[j][5]).trim() : "";
-            if (sheetClub.toLowerCase() === safeClub.toLowerCase() || sheetClubId.toLowerCase() === safeClub.toLowerCase()) {
-              normalizedClub = sheetClub;
-              normalizedClubId = sheetClubId;
-              foundExact = true;
-              break;
-            }
-            if (!foundPartial && sheetClub && (sheetClub.toLowerCase().indexOf(safeClub.toLowerCase()) !== -1 || safeClub.toLowerCase().indexOf(sheetClub.toLowerCase()) !== -1)) {
-              partialClub = sheetClub;
-              partialClubId = sheetClubId;
-              foundPartial = true;
-            }
-          }
-          if (!foundExact && foundPartial) {
-            normalizedClub = partialClub;
-            normalizedClubId = partialClubId;
-          }
-        }
-      } catch (err) {
-        logToSheet("verifyTestLogin 錯誤: " + err.toString());
-        // 忽略錯誤，使用原本的輸入
-      }
-
-      var token = generateTestToken({
-        email: inputEmail,
-        club: normalizedClub,
-        clubId: normalizedClubId,
-        name: teacherName,
-        remark: remarkVal
-      });
-
-      return {
-        email: inputEmail,
-        id: "TEST_USER",
-        class: "000",
-        no: "00",
-        name: teacherName,
-        club: normalizedClub,
-        clubId: normalizedClubId,
-        remark: remarkVal,
-        fillerInfo: remarkVal + "-" + teacherName,
-        token: token
-      };
-    }
-  }
-  return { error: true, msg: "您並非測試人員，請聯絡管理員建立測試帳號" };
+  this.logToSheet("未找到對應學生資訊: " + email + " (學號: " + studentId + ")");
+  return { error: true, msg: "未找到對應學生資訊" };
 }
 
 // ==========================================
@@ -854,18 +668,14 @@ function doPost(e) {
   }
 
   try {
-    var req = JSON.parse(e.postData.contents);
-    var action = req.action;
-    var result;
-
-    if (action === "verifyTestLogin") {
-      result = verifyTestLogin(req.email, req.password, req.club, req.identity);
-    } else {
-      var token = (action === "submitAttendance") ? (req.data && req.data.token) : req.token;
-      var auth = authenticateRequest(token);
-      if (auth.error) {
-        return jsonResponse(auth, corsHeaders);
-      }
+    const req = JSON.parse(e.postData.contents);
+    const action = req.action;
+    let result;
+    const token = (action === "submitAttendance") ? (req.data && req.data.token) : req.token;
+    const auth = authenticateRequest(token);
+    if (auth.error) {
+      return jsonResponse(auth, corsHeaders);
+    }
 
       // API Action 路由對照表
       if (action === "getLoginUser") {
@@ -925,12 +735,4 @@ function doPost(e) {
   } catch (err) {
     return jsonResponse({ status: "error", message: "請求處理失敗，請稍後再試" }, corsHeaders);
   }
-}
-
-/**
- * 系統驗證授權專用之測試函數
- */
-function forceAuth() {
-  var res = UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo", { muteHttpExceptions: true });
-  Logger.log("測試連線狀態碼: " + res.getResponseCode());
 }

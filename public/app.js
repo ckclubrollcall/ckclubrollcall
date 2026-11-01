@@ -182,7 +182,7 @@ function initPage() {
 }
 
 // ==========================================
-// 2. Google 登入與測試帳號驗證流程
+// 2. Google 登入驗證流程
 // ==========================================
 
 /**
@@ -238,10 +238,6 @@ function showLoginButton() {
  * 取得加密憑證 (Credential Token) 並送往 Google 試算表 API 進行身分核對。
  */
 async function handleGoogleCredential(response) {
-    // 若已透過測試帳號登入，Google auto_select 不應覆蓋現有 Session
-    if (window._loginInfo && window._loginInfo.token && window._loginInfo.token.startsWith('TEST_')) {
-        return;
-    }
     window.googleToken = response.credential; // 快取 Token
     document.getElementById('loginArea').style.display = 'none';
     document.getElementById('loadingArea').style.display = 'block'; // 顯示讀取中畫面
@@ -269,66 +265,14 @@ async function fetchUserInfo(token) {
 
 /**
  * 處理並引導登入後的身份檢查
- * 若是非官方網域(例如測試用的一般帳號)，會被要求引導至手動輸入測試密碼的區域。
  */
 function handleUserInfo(info, token) {
     document.getElementById('loadingArea').style.display = 'none';
-
-    if (info.needManualLogin) {
-        // 顯示測試人員專用登入框
-        document.getElementById('teacherAuthArea').style.display = 'block';
-        if (info.defaultEmail) document.getElementById('teacherEmail').value = info.defaultEmail;
-        return;
-    }
     if (info.error) {
         showError(info.msg || '驗證失敗，請重新整理頁面再試。');
         return;
     }
     renderForm(info);
-}
-
-/**
- * 測試/外部帳號登入提交
- * 適用於沒有學校建中帳號，但需要測試或查看系統的社團老師與幹部。
- */
-async function submitTeacherAuth() {
-    const email = document.getElementById('teacherEmail').value.trim();
-    const password = document.getElementById('teacherPassword').value.trim();
-    const club = document.getElementById('testClub').value.trim();
-    const identity = document.getElementById('testIdentity').value;
-
-    if (!email || !password || !club) { await showAlert('錯誤: 請完整填寫所有欄位！'); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { await showAlert('錯誤: Email 格式不正確！'); return; }
-    if (club.length > 30) { await showAlert('錯誤: 社團名稱過長！'); return; }
-
-    const btn = document.getElementById('teacherAuthBtn');
-    btn.disabled = true; btn.textContent = '驗證中…';
-
-    document.getElementById('loginArea').style.display = 'none';
-    document.getElementById('teacherAuthArea').style.display = 'none';
-    document.getElementById('loadingArea').style.display = 'block';
-
-    try {
-        // 呼叫 GAS 後台驗證測試密碼與尋找對應社團
-        const res = await gasPost({ action: 'verifyTestLogin', email, password, club, identity });
-        if (res.error) {
-            document.getElementById('loginArea').style.display = 'block';
-            document.getElementById('teacherAuthArea').style.display = 'block';
-            document.getElementById('loadingArea').style.display = 'none';
-            btn.disabled = false; btn.textContent = '登入';
-            await showAlert('錯誤：' + res.msg);
-            return;
-        }
-
-        document.getElementById('loadingArea').style.display = 'none';
-        renderForm(res); // 登入成功，將規格化後的資料渲染主頁面
-    } catch (err) {
-        document.getElementById('loginArea').style.display = 'block';
-        document.getElementById('teacherAuthArea').style.display = 'block';
-        document.getElementById('loadingArea').style.display = 'none';
-        btn.disabled = false; btn.textContent = '登入';
-        await showAlert('連線失敗，請稍後再試。');
-    }
 }
 
 /**
@@ -665,7 +609,7 @@ function loadStudents(clubName) {
         return Promise.resolve();
     }
 
-    // 優先使用登入時存入的 token（測試帳號的 TEST_TOKEN 不會被 Google auto_select 污染）
+    // 優先使用登入時存入的 token
     const token = (window._loginInfo && window._loginInfo.token) || window.googleToken;
     if (!token) {
         if (!cachedData) {
@@ -683,7 +627,6 @@ function loadStudents(clubName) {
                 }
                 return;
             }
-
             setSessionItem(cacheKey, JSON.stringify(students));
             setSessionItem(cachedTimeKey, String(Date.now()));
 
@@ -727,7 +670,7 @@ function renderStudents(students) {
         cb.className = 'student-cb';
         cb.value = text;
         cb.id = 'cb_' + s.class + s.no;
-        
+
         // 點擊打勾時切換樣式並即時更新統計與草稿
         cb.addEventListener('change', () => {
             item.classList.toggle('present', cb.checked);
@@ -1385,7 +1328,6 @@ function bindUiEvents() {
     };
 
     bindClick('siteHeader', goHome);
-    bindClick('teacherAuthBtn', submitTeacherAuth);
     bindClick('btnNewForm', showNewForm);
     bindClick('btnShowRecords', () => navigateTo('records.html'));
     bindClick('menuFooterLink', switchAccount);
