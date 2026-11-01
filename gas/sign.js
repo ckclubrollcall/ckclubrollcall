@@ -9,7 +9,7 @@ function renderClubReportDoc() {
   // 1. 彈出輸入對話框要求輸入日期
   const response = ui.prompt("產生簽名報表", "請輸入社課日期（格式範例：2026/6/7）：", ui.ButtonSet.OK_CANCEL);
 
-  if (response.getSelectedButton() == ui.Button.OK) {
+  if (response.getSelectedButton() === ui.Button.OK) {
     const targetDate = response.getResponseText().trim();
     if (!targetDate) {
       ui.alert("❌ 請輸入有效日期！");
@@ -251,6 +251,7 @@ function formatDateTime(d) {
 /**
  * 輔助工具：從簽名連結、Google Drive URL 或檔案名稱解析出 Google Drive File ID
  */
+// eslint-disable-next-line no-redeclare
 function parseDriveId(input) {
   if (!input) { return null; }
   const str = String(input).trim();
