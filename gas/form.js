@@ -684,15 +684,18 @@ function doPost(e) {
       return jsonResponse(auth, corsHeaders);
     }
 
-      // API Action 路由對照表
-      if (action === "getLoginUser") {
+    // API Action 路由對照表
+    switch (action) {
+      case "getLoginUser":
         result = auth.user;
-      } else if (action === "getClubMembers") {
+        break;
+      case "getClubMembers":
         if (auth.user.club !== req.clubName && auth.user.remark !== "管理員") {
           return jsonResponse({ status: "error", message: "無權限查看此社團名單" }, corsHeaders);
         }
         result = getClubMembers(req.clubName);
-      } else if (action === "submitAttendance") {
+        break;
+      case "submitAttendance": {
         if (auth.user.club !== req.data.club) {
           return jsonResponse({ status: "error", message: "無權限為此社團提交點名資料" }, corsHeaders);
         }
@@ -704,7 +707,9 @@ function doPost(e) {
         req.data.fillerName = auth.user.name;
 
         result = submitAttendance(req.data);
-      } else if (action === "getAttendanceList") {
+        break;
+      }
+      case "getAttendanceList": {
         if (auth.user.club !== req.club) {
           return jsonResponse({ status: "error", message: "無權限查看此社團的紀錄" }, corsHeaders);
         }
@@ -712,7 +717,9 @@ function doPost(e) {
           return jsonResponse({ status: "error", message: "只有幹部才能查看社團點名列表" }, corsHeaders);
         }
         result = getAttendanceList(req.club);
-      } else if (action === "getAttendanceDetail") {
+        break;
+      }
+      case "getAttendanceDetail": {
         if (auth.user.club !== req.club) {
           return jsonResponse({ status: "error", message: "無權限查看此社團的紀錄詳情" }, corsHeaders);
         }
@@ -720,7 +727,9 @@ function doPost(e) {
           return jsonResponse({ status: "error", message: "無權限查看此紀錄詳情" }, corsHeaders);
         }
         result = getAttendanceDetail(req.club, req.date);
-      } else if (action === "getMyAttendance") {
+        break;
+      }
+      case "getMyAttendance": {
         if (auth.user.club !== req.club) {
           return jsonResponse({ status: "error", message: "無權限查看此社團的出缺席紀錄" }, corsHeaders);
         }
@@ -732,13 +741,13 @@ function doPost(e) {
           return jsonResponse({ status: "error", message: "無權限查看他人出缺席紀錄" }, corsHeaders);
         }
         result = getMyAttendance(req.club, req.identity);
-      } else {
+        break;
+      }
+      default: {
         result = { status: "error", message: "未知的操作指令" };
       }
-
-      return jsonResponse(result, corsHeaders);
-
     }
+    return jsonResponse(result, corsHeaders);
   } catch (err) {
     logToSheet("doPost 錯誤: " + err.toString());
     return jsonResponse({ status: "error", message: "請求處理失敗，請稍後再試" }, corsHeaders);
