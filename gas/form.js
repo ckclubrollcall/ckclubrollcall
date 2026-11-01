@@ -166,7 +166,7 @@ function authenticateRequest(token) {
 
   const user = getLoginUserExternal(email);
   if (user.error) {
-    return { error: true, msg: "使用者資料讀取失敗，請聯絡管理員" };
+    return { error: true, needLogout: true, msg: user.msg || "使用者資料讀取失敗，請聯絡管理員" };
   }
 
   return { error: false, user: user };
