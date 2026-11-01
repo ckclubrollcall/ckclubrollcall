@@ -30,7 +30,7 @@
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self';
-    script-src 'self' https://accounts.google.com https://apis.google.com;
+    script-src 'self' https://accounts.google.com https://apis.google.com https://www.clarity.ms https://cdn.jsdelivr.net 'unsafe-inline' 'unsafe-eval';
     style-src 'self' 'unsafe-inline' https://accounts.google.com;
     font-src 'self' https://cdn.jsdelivr.net;
     img-src 'self' https://raw.githubusercontent.com https://*.googleusercontent.com data:;
@@ -43,6 +43,22 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="style.css" />
+
+    <!-- Clarity -->
+    <script type="text/javascript">
+      (function (c, l, a, r, i, t, y) {
+        c[a] =
+          c[a] ||
+          function () {
+            (c[a].q = c[a].q || []).push(arguments);
+          };
+        t = l.createElement(r);
+        t.async = 1;
+        t.src = "https://www.clarity.ms/tag/" + i;
+        y = l.getElementsByTagName(r)[0];
+        y.parentNode.insertBefore(t, y);
+      })(window, document, "clarity", "script", "z6ql3kfhv4");
+    </script>
   </head>
 
   <body data-page="login">
@@ -176,11 +192,8 @@
       </div>
     </div>
 
-  <script src="config.js"></script>
-  <script src="app.js"></script>
-  
-  <script id="googleGsiScript" src="https://accounts.google.com/gsi/client" async defer></script>
-</body>
+    <script src="config.js"></script>
+    <script src="app.js"></script>
 
     <script
       id="googleGsiScript"
