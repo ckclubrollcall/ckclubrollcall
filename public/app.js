@@ -16,7 +16,7 @@ const MAX_TEACHER_LEN = 30;   // 代課老師姓名最大字數
 const ALLOWED_LOOKBACK_DAYS = 5; // 允許點名補填或修改的天數範圍（含今天往前 5 天）
 const DRAFT_KEY = 'attendanceDraft'; // 暫存草稿在瀏覽器內的金鑰名稱
 const USER_CACHE_KEY = 'cachedUserInfo';
-const TOKEN_VERSION = 'v2'; // 修正 UTF-8 編碼後升版，強制淘汰舊 TEST_TOKEN
+const TOKEN_VERSION = 'v3';
 
 // 封裝登入使用者資訊的類別，保護內部變數不被外部隨意修改
 class PackagedUserInfo {

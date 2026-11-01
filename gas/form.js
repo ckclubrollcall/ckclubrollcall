@@ -733,10 +733,7 @@ function doPost(e) {
         if (auth.user.club !== req.club) {
           return jsonResponse({ status: "error", message: "無權限查看此社團的出缺席紀錄" }, corsHeaders);
         }
-        let expectedIdentity = auth.user.class + " " + auth.user.no + " " + auth.user.name;
-        if (auth.user.id === "TEST_USER") {
-          expectedIdentity = req.identity;
-        }
+        const expectedIdentity = auth.user.class + " " + auth.user.no + " " + auth.user.name;
         if (expectedIdentity.trim() !== req.identity.trim()) {
           return jsonResponse({ status: "error", message: "無權限查看他人出缺席紀錄" }, corsHeaders);
         }
