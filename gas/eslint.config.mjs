@@ -18,6 +18,7 @@ export default defineConfig([
                 Logger: "readonly",
                 Utilities: "readonly",
                 PropertiesService: "readonly",
+                CacheService: "readonly",
                 UrlFetchApp: "readonly",
                 HtmlService: "readonly",
                 ContentService: "readonly",

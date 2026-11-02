@@ -70,17 +70,14 @@ function isOfficer(remark) {
  * 限制同一用戶的點名頻率，限制 60 秒內不得重複提交
  */
 function checkAndSetCooldown(email) {
-  const props = PropertiesService.getScriptProperties();
+  const cache = CacheService.getScriptCache();
   const key = "submit_ts_" + email.replace(/[^a-zA-Z0-9]/g, "_");
-  const lastTs = props.getProperty(key);
+  const lastTs = cache.get(key);
 
   if (lastTs) {
-    const elapsed = (Date.now() - parseInt(lastTs, 10)) / 1000;
-    if (elapsed < SECURITY.SUBMIT_COOLDOWN_SEC) {
-      return false; // 仍在冷卻中
-    }
+    return false;
   }
-  props.setProperty(key, String(Date.now())); // 更新最後提交時間
+  cache.put(key, true, 60);
   return true;
 }
 
