@@ -201,12 +201,12 @@ function getSignFolderId() {
  * 以 Google 信箱於試算表「原始名單」中檢索其學生資訊與角色
  */
 function getLoginUserExternal(email) {
-  if (!isValidEmail(email)) { return { error: true }; }
+  if (!isValidEmail(email)) { return { error: true, msg: "無效的電子郵件地址" }; }
 
   // 強制檢查網域，只允許建中官方網域帳號 @gl.ck.tp.edu.tw 登入
   if (!email.toLowerCase().endsWith("@gl.ck.tp.edu.tw")) {
     logToSheet("拒絕非官方網域登入嘗試: " + email);
-    return { error: true };
+    return { error: true, msg: "非建中官方網域帳號，無法登入" };
   }
 
   let studentId = "";
