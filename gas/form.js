@@ -399,11 +399,6 @@ function getMyAttendance(club, identity) {
 function submitAttendance(data) {
   if (!data) { return { status: "error", message: "資料不完整" }; }
 
-  const lock = LockService.getScriptLock();
-  if (!lock.tryLock(30000)) {
-    return { status: "error", message: "系統忙碌，請稍後再試" };
-  }
-
   try {
     let safeEmail = "";
     if (data.email && data.email !== "") {
@@ -557,10 +552,6 @@ function submitAttendance(data) {
       return { status: "error", message: "簽名格式不正確" };
     }
 
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = ss.getSheetByName("點名紀錄");
-    const formattedDate = new Date(data.date.replace(/-/g, "/"));
-
     // 11. 將 Base64 格式轉回 PNG 圖檔，並依類別命名後寫入指定 Google Drive 資料夾
     const folderId = getSignFolderId();
     const folder = DriveApp.getFolderById(folderId);
@@ -569,6 +560,15 @@ function submitAttendance(data) {
     const blob = Utilities.newBlob(Utilities.base64Decode(base64), "image/png", fileName);
     const file = folder.createFile(blob);
     const fileUrl = file.getUrl(); // 取得檔案的公開/內部連結
+
+    const lock = LockService.getScriptLock();
+    if (!lock.tryLock(30000)) {
+      return { status: "error", message: "系統忙碌，請稍後再試" };
+    }
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName("點名紀錄");
+    const formattedDate = new Date(data.date.replace(/-/g, "/"));
 
     // 確保點名紀錄標題列包含第 L 欄「紀錄類別」
     if (sheet.getLastRow() >= 1) {
