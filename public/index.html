@@ -71,56 +71,6 @@
         <p class="login-title">請使用學校 Google 帳號登入</p>
         <div id="g_id_signin"></div>
       </div>
-
-      <!-- 外部帳號登入 -->
-      <div id="teacherAuthArea">
-        <h3>測試登入</h3>
-        <p>您的帳號不在學生名單中，請使用學校 Google帳號登入。</p>
-        <p>若欲測試本系統，請聯絡管理員協助建立測試用帳號與密碼。</p>
-        <div class="form-group">
-          <label>Email</label>
-          <input
-            type="text"
-            id="teacherEmail"
-            placeholder="請輸入電子郵件"
-            maxlength="100"
-            autocomplete="email"
-          />
-        </div>
-        <div class="form-group">
-          <label>密碼</label>
-          <input
-            type="password"
-            id="teacherPassword"
-            placeholder="請輸入測試密碼"
-            maxlength="100"
-            autocomplete="current-password"
-          />
-        </div>
-        <div class="form-group">
-          <label>社團</label>
-          <input
-            type="text"
-            id="testClub"
-            placeholder="需與現有社團名稱完全一致"
-            maxlength="30"
-          />
-        </div>
-        <div class="form-group">
-          <label>身分</label>
-          <select id="testIdentity">
-            <option value="幹部">幹部</option>
-            <option value="社員">社員</option>
-          </select>
-        </div>
-        <button
-          class="btn btn-primary"
-          id="teacherAuthBtn"
-          style="margin-top: 8px"
-        >
-          登入
-        </button>
-      </div>
     </div>
     <footer>
       開發人員：社團點名系統維護小組<a
@@ -176,11 +126,8 @@
       </div>
     </div>
 
-  <script src="config.js"></script>
-  <script src="app.js"></script>
-  
-  <script id="googleGsiScript" src="https://accounts.google.com/gsi/client" async defer></script>
-</body>
+    <script src="config.js"></script>
+    <script src="app.js"></script>
 
     <script
       id="googleGsiScript"

@@ -120,28 +120,6 @@ header p {
     display: inline-block;
 }
 
-/* 外部登入頁面 */
-#teacherAuthArea {
-    display: none;
-    border: 2px dashed var(--blue);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-top: 16px;
-    background: var(--blue-lt);
-}
-
-#teacherAuthArea h3 {
-    color: var(--blue);
-    font-size: 1rem;
-    margin-bottom: 8px;
-}
-
-#teacherAuthArea p {
-    font-size: .85rem;
-    color: var(--gray-700);
-    margin-bottom: 16px;
-}
-
 /* 表單頁面 */
 #formArea {
     display: none;
