@@ -1259,8 +1259,7 @@
               <strong>幹部</strong
               >：可「開始點名」+「查詢紀錄」+「修改紀錄」<br /><strong
                 >社員</strong
-              >：只能查自己的出缺席<br /><strong>測試帳號</strong
-              >：外部人員用密碼登入<br /><strong>檔案位置：</strong
+              >：只能查自己的出缺席<br /><strong>檔案位置：</strong
               ><span class="file-location-tag loc-front"
                 >app.js / form.js 權限對照</span
               >
@@ -1338,7 +1337,7 @@
                       <span class="fn-tag orange">authenticateRequest()</span>
                     </div>
                     <div class="step-detail">
-                      檢查 Google Token 或測試 Token 是否有效，確認使用者身分<br />
+                      檢查 Google Token 是否有效，確認使用者身分<br />
                       <span class="file-location-tag loc-gas"
                         >程式碼位置：Google 試算表 GAS 後台 (form.js ➔
                         authenticateRequest 函式)</span
@@ -1392,8 +1391,7 @@
       <div class="section" id="tab-login">
         <div class="section-title">登入驗證流程</div>
         <div class="section-desc">
-          使用者打開網頁後，系統會依序檢查快取 ➔ Google 登入 ➔
-          身分核對。非建中帳號會被引導至測試登入。
+          使用者打開網頁後，系統會依序檢查快取 ➔ Google 登入 ➔ 身分核對。
         </div>
 
         <div class="controls">
@@ -1620,96 +1618,7 @@
                       處理回傳結果
                     </div>
                     <div class="step-detail">
-                      • 找到學生 ➔ 進入主選單<br />• 非建中信箱 ➔
-                      顯示測試登入表單<br />• 驗證失敗 ➔ 顯示錯誤訊息<br /><span
-                        class="file-location-tag loc-front"
-                        >程式碼位置：前端網頁 (app.js)</span
-                      >
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="tree-node">
-            <div class="node-header" onclick="toggleNode(this)">
-              <div class="node-icon purple"></div>
-              <div class="node-text">
-                <div class="node-label">測試帳號登入（非建中帳號）</div>
-                <div class="node-sub">外部老師或測試人員手動輸入密碼</div>
-              </div>
-              <span class="node-badge badge-both">前後台</span>
-              <div class="node-chevron">▸</div>
-            </div>
-            <div class="node-children">
-              <div class="step-list">
-                <div class="step">
-                  <div class="step-content">
-                    <div class="step-title">
-                      使用者填寫 Email、密碼、社團名稱、身分
-                    </div>
-                    <div class="step-detail">
-                      在測試登入表單中輸入管理員預先設定的帳號密碼<br /><span
-                        class="file-location-tag loc-front"
-                        >程式碼位置：前端網頁 (index.html
-                        #teacherAuthArea)</span
-                      >
-                    </div>
-                  </div>
-                </div>
-                <div class="step">
-                  <div class="step-content">
-                    <div class="step-title">
-                      <span class="fn-tag blue">submitTeacherAuth()</span>
-                      前端格式檢查
-                    </div>
-                    <div class="step-detail">
-                      檢查 Email 格式、欄位非空、社團名稱長度等基本驗證<br /><span
-                        class="file-location-tag loc-front"
-                        >程式碼位置：前端網頁 (app.js)</span
-                      >
-                    </div>
-                  </div>
-                </div>
-                <div class="step">
-                  <div class="step-content">
-                    <div class="step-title">
-                      後台
-                      <span class="fn-tag green">verifyTestLogin()</span>
-                      比對防刷
-                    </div>
-                    <div class="step-detail">
-                      • 冷卻防護：60 秒內不可重複嘗試<br />• 比對密碼的 SHA-256
-                      雜湊值<br />• 模糊比對社團名稱（自動容錯）<br /><span
-                        class="file-location-tag loc-gas"
-                        >程式碼位置：Google 試算表 GAS 後台 (form.js)</span
-                      >
-                    </div>
-                  </div>
-                </div>
-                <div class="step">
-                  <div class="step-content">
-                    <div class="step-title">
-                      後台
-                      <span class="fn-tag green">generateTestToken()</span>
-                      產生加密憑證
-                    </div>
-                    <div class="step-detail">
-                      用 HMAC-SHA256 簽章，將身分資料加密成 Token（有效期 14
-                      天）<br /><span class="file-location-tag loc-gas"
-                        >程式碼位置：Google 試算表 GAS 後台 (form.js)</span
-                      >
-                    </div>
-                  </div>
-                </div>
-                <div class="step">
-                  <div class="step-content">
-                    <div class="step-title">
-                      <span class="fn-tag blue">renderForm()</span> 進入主選單
-                    </div>
-                    <div class="step-detail">
-                      儲存登入狀態到快取，顯示功能按鈕<br /><span
+                      • 找到學生 ➔ 進入主選單<br />• 驗證失敗 ➔ 顯示錯誤訊息<br /><span
                         class="file-location-tag loc-front"
                         >程式碼位置：前端網頁 (app.js)</span
                       >
@@ -2913,7 +2822,7 @@
               >：班級、座號、姓名、學號、身分、社團編號、社團名稱。<br /><strong
                 >點名紀錄</strong
               >：每次送出的正式點名資料。<br /><strong>系統設定</strong
-              >：簽名/報表資料夾、測試帳號。<br /><strong>系統日誌</strong
+              >：簽名/報表資料夾。<br /><strong>系統日誌</strong
               >：錯誤追蹤。<br /><span class="file-location-tag loc-sheet"
                 >Google 試算表工作表</span
               >
@@ -3495,17 +3404,6 @@
                 >
               </td>
               <td>驗證 Google Token，查找學生資料</td>
-            </tr>
-            <tr>
-              <td>測試帳號按「登入」</td>
-              <td><span class="action-name">verifyTestLogin</span></td>
-              <td>
-                verifyTestLogin() ➔ generateTestToken()<br /><span
-                  class="file-location-tag loc-gas"
-                  >form.js</span
-                >
-              </td>
-              <td>密碼驗證 + 產生加密 Token</td>
             </tr>
             <tr>
               <td>進入點名表單</td>
