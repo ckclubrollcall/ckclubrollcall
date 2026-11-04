@@ -70,17 +70,14 @@ function isOfficer(remark) {
  * 限制同一用戶的點名頻率，限制 60 秒內不得重複提交
  */
 function checkAndSetCooldown(email) {
-  const props = PropertiesService.getScriptProperties();
+  const cache = CacheService.getScriptCache();
   const key = "submit_ts_" + email.replace(/[^a-zA-Z0-9]/g, "_");
-  const lastTs = props.getProperty(key);
+  const lastTs = cache.get(key);
 
   if (lastTs) {
-    const elapsed = (Date.now() - parseInt(lastTs, 10)) / 1000;
-    if (elapsed < SECURITY.SUBMIT_COOLDOWN_SEC) {
-      return false; // 仍在冷卻中
-    }
+    return false;
   }
-  props.setProperty(key, String(Date.now())); // 更新最後提交時間
+  cache.put(key, true, 60);
   return true;
 }
 
@@ -201,12 +198,12 @@ function getSignFolderId() {
  * 以 Google 信箱於試算表「原始名單」中檢索其學生資訊與角色
  */
 function getLoginUserExternal(email) {
-  if (!isValidEmail(email)) { return { error: true }; }
+  if (!isValidEmail(email)) { return { error: true, msg: "無效的電子郵件地址" }; }
 
   // 強制檢查網域，只允許建中官方網域帳號 @gl.ck.tp.edu.tw 登入
   if (!email.toLowerCase().endsWith("@gl.ck.tp.edu.tw")) {
     logToSheet("拒絕非官方網域登入嘗試: " + email);
-    return { error: true };
+    return { error: true, msg: "非建中官方網域帳號，無法登入" };
   }
 
   let studentId = "";
@@ -391,11 +388,6 @@ function getMyAttendance(club, identity) {
 function submitAttendance(data) {
   if (!data) { return { status: "error", message: "資料不完整" }; }
 
-  const lock = LockService.getScriptLock();
-  if (!lock.tryLock(5000)) {
-    return { status: "error", message: "系統忙碌，請稍後再試" };
-  }
-
   try {
     let safeEmail = "";
     if (data.email && data.email !== "") {
@@ -549,10 +541,6 @@ function submitAttendance(data) {
       return { status: "error", message: "簽名格式不正確" };
     }
 
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = ss.getSheetByName("點名紀錄");
-    const formattedDate = new Date(data.date.replace(/-/g, "/"));
-
     // 11. 將 Base64 格式轉回 PNG 圖檔，並依類別命名後寫入指定 Google Drive 資料夾
     const folderId = getSignFolderId();
     const folder = DriveApp.getFolderById(folderId);
@@ -562,76 +550,91 @@ function submitAttendance(data) {
     const file = folder.createFile(blob);
     const fileUrl = file.getUrl(); // 取得檔案的公開/內部連結
 
-    // 確保點名紀錄標題列包含第 L 欄「紀錄類別」
-    if (sheet.getLastRow() >= 1) {
-      const headerL = sheet.getRange(1, 12).getValue();
-      if (!headerL) {
-        sheet.getRange(1, 12).setValue("紀錄類別");
-      }
+    const lock = LockService.getScriptLock();
+    if (!lock.tryLock(30000)) {
+      return { status: "error", message: "系統忙碌，請稍後再試" };
     }
 
-    // 附加新列至點名紀錄試算表
-    sheet.appendRow([
-      new Date(),            // A: 填寫日期時間
-      safeFillerInfo,        // B: 填答人身分類別
-      safeClub,              // C: 社團官方名稱
-      formattedDate,         // D: 點名社課日期
-      safeFillerName,        // E: 填寫人姓名
-      safeDesc,              // F: 社課內容簡述
-      safeTeacherPresent,    // G: 指導老師出席與否
-      safeSubTeacher,        // H: 代課老師姓名
-      safePresentCount,      // I: 出席總人數
-      safeAbsentList,        // J: 換行缺席名單
-      fileUrl,               // K: 老師簽名 / 修改者簽名 (將嘗試轉換為 Google Drive 智慧方塊)
-      recordType             // L: 紀錄類別 (新增 / 編輯)
-    ]);
-
-    const lastRow = sheet.getLastRow();
-
-    // 12. 優先使用 Google Sheets API (v4 batchUpdate chipRuns) 產生 Google Drive 檔案智慧方塊
     try {
-      if (typeof Sheets !== "undefined" && Sheets.Spreadsheets && fileUrl) {
-        const spreadsheetId = ss.getId();
-        const sheetId = sheet.getSheetId();
-        const rowIndex = lastRow - 1; // 0-indexed
-        const colIndex = 10;          // K 欄為第 11 欄 -> 0-indexed 為 10
 
-        Sheets.Spreadsheets.batchUpdate({
-          requests: [{
-            updateCells: {
-              rows: [{
-                values: [{
-                  userEnteredValue: { stringValue: "@" },
-                  chipRuns: [{
-                    startIndex: 0,
-                    chip: {
-                      richLinkProperties: {
-                        uri: fileUrl
-                      }
-                    }
-                  }]
-                }]
-              }],
-              range: {
-                sheetId: sheetId,
-                startRowIndex: rowIndex,
-                endRowIndex: rowIndex + 1,
-                startColumnIndex: colIndex,
-                endColumnIndex: colIndex + 1
-              },
-              fields: "userEnteredValue,chipRuns"
-            }
-          }]
-        }, spreadsheetId);
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const sheet = ss.getSheetByName("點名紀錄");
+      const formattedDate = new Date(data.date.replace(/-/g, "/"));
+
+      // 確保點名紀錄標題列包含第 L 欄「紀錄類別」
+      if (sheet.getLastRow() >= 1) {
+        const headerL = sheet.getRange(1, 12).getValue();
+        if (!headerL) {
+          sheet.getRange(1, 12).setValue("紀錄類別");
+        }
       }
-    } catch (chipError) {
-      logToSheet("Drive 檔案智慧方塊轉換失敗，已保留原始連結: " + chipError.toString());
-      // 若 Sheets API 發生錯誤或未啟用，已保留原先寫入之 fileUrl 作為安全降級
-    }
 
-    return "SUCCESS";
-  } finally {
-    lock.releaseLock();
+      // 附加新列至點名紀錄試算表
+      sheet.appendRow([
+        new Date(),            // A: 填寫日期時間
+        safeFillerInfo,        // B: 填答人身分類別
+        safeClub,              // C: 社團官方名稱
+        formattedDate,         // D: 點名社課日期
+        safeFillerName,        // E: 填寫人姓名
+        safeDesc,              // F: 社課內容簡述
+        safeTeacherPresent,    // G: 指導老師出席與否
+        safeSubTeacher,        // H: 代課老師姓名
+        safePresentCount,      // I: 出席總人數
+        safeAbsentList,        // J: 換行缺席名單
+        fileUrl,               // K: 老師簽名 / 修改者簽名 (將嘗試轉換為 Google Drive 智慧方塊)
+        recordType             // L: 紀錄類別 (新增 / 編輯)
+      ]);
+
+      const lastRow = sheet.getLastRow();
+
+      // 12. 優先使用 Google Sheets API (v4 batchUpdate chipRuns) 產生 Google Drive 檔案智慧方塊
+      try {
+        if (typeof Sheets !== "undefined" && Sheets.Spreadsheets && fileUrl) {
+          const spreadsheetId = ss.getId();
+          const sheetId = sheet.getSheetId();
+          const rowIndex = lastRow - 1; // 0-indexed
+          const colIndex = 10;          // K 欄為第 11 欄 -> 0-indexed 為 10
+
+          Sheets.Spreadsheets.batchUpdate({
+            requests: [{
+              updateCells: {
+                rows: [{
+                  values: [{
+                    userEnteredValue: { stringValue: "@" },
+                    chipRuns: [{
+                      startIndex: 0,
+                      chip: {
+                        richLinkProperties: {
+                          uri: fileUrl
+                        }
+                      }
+                    }]
+                  }]
+                }],
+                range: {
+                  sheetId: sheetId,
+                  startRowIndex: rowIndex,
+                  endRowIndex: rowIndex + 1,
+                  startColumnIndex: colIndex,
+                  endColumnIndex: colIndex + 1
+                },
+                fields: "userEnteredValue,chipRuns"
+              }
+            }]
+          }, spreadsheetId);
+        }
+      } catch (chipError) {
+        logToSheet("Drive 檔案智慧方塊轉換失敗，已保留原始連結: " + chipError.toString());
+        // 若 Sheets API 發生錯誤或未啟用，已保留原先寫入之 fileUrl 作為安全降級
+      }
+
+      return "SUCCESS";
+    } finally {
+      lock.releaseLock();
+    }
+  } catch (err) {
+    logToSheet("submitAttendance 錯誤: " + err.toString());
+    return { status: "error", message: "提交點名資料失敗，請稍後再試" };
   }
 }
 
