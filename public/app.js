@@ -790,7 +790,7 @@ async function submitForm() {
         subTeacher: subTeacherVal,
         presentCount: presentCount,
         absentList: absentList.length > 0 ? absentList.join('\n') : '全勤',
-        signature: canvas.toDataURL('image/png')
+        signature: getSignatureDataURL()
     };
 
     btn.disabled = true;
@@ -1075,12 +1075,112 @@ function initCanvas() {
  */
 function openSigModal() {
     document.getElementById('sigModal').classList.add('open');
-    if (!isCanvasSized) {
-        // 設定 Canvas 實體寬高為自適應的外容器尺寸
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-        isCanvasSized = true;
+    syncCanvasSize();
+}
+
+const SIG_EXPORT_MAX_WIDTH = 600; // 送出時簽名圖片的最大寬度，避免全螢幕後上傳資料量變大
+
+/**
+ * 讓 Canvas 位元圖尺寸與目前顯示尺寸一致，並保留已寫的筆跡（等比例縮放、置中）
+ */
+function syncCanvasSize() {
+    if (!canvas || !ctx) return;
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    if (!w || !h) return; // 彈窗未顯示時無法量測
+    if (canvas.width === w && canvas.height === h) return;
+
+    const hadInk = isCanvasSized && hasSigned && canvas.width && canvas.height;
+    let snapshot = null;
+    if (hadInk) {
+        snapshot = document.createElement('canvas');
+        snapshot.width = canvas.width;
+        snapshot.height = canvas.height;
+        snapshot.getContext('2d').drawImage(canvas, 0, 0);
     }
+
+    canvas.width = w;
+    canvas.height = h;
+    isCanvasSized = true;
+
+    if (snapshot) {
+        const scale = Math.min(w / snapshot.width, h / snapshot.height);
+        const dw = snapshot.width * scale;
+        const dh = snapshot.height * scale;
+        ctx.drawImage(snapshot, (w - dw) / 2, (h - dh) / 2, dw, dh);
+    }
+}
+
+/**
+ * 取得送出用的簽名圖片（寬度超過上限時等比例縮小）
+ */
+function getSignatureDataURL() {
+    if (canvas.width <= SIG_EXPORT_MAX_WIDTH) return canvas.toDataURL('image/png');
+    const out = document.createElement('canvas');
+    out.width = SIG_EXPORT_MAX_WIDTH;
+    out.height = Math.round(canvas.height * SIG_EXPORT_MAX_WIDTH / canvas.width);
+    out.getContext('2d').drawImage(canvas, 0, 0, out.width, out.height);
+    return out.toDataURL('image/png');
+}
+
+/**
+ * 更新「直向建議橫放」提示的顯示狀態
+ */
+function updateSigOrientationHint() {
+    const modal = document.getElementById('sigModal');
+    const hint = document.getElementById('sigRotateHint');
+    if (!modal || !hint) return;
+    const portrait = window.matchMedia('(orientation: portrait)').matches;
+    hint.style.display = modal.classList.contains('fullscreen') && portrait ? 'block' : 'none';
+}
+
+/**
+ * 進入／離開簽名板全螢幕（優先使用 Fullscreen API，不支援時以 CSS 全螢幕替代）
+ */
+function setSigFullscreen(on) {
+    const modal = document.getElementById('sigModal');
+    const btn = document.getElementById('sigFullscreenBtn');
+    modal.classList.toggle('fullscreen', on);
+    if (btn) {
+        btn.setAttribute('aria-label', on ? '離開全螢幕' : '全螢幕');
+        const icon = btn.querySelector('i');
+        if (icon) icon.className = on ? 'bi bi-fullscreen-exit' : 'bi bi-arrows-fullscreen';
+    }
+    if (on) {
+        if (modal.requestFullscreen && !document.fullscreenElement) {
+            modal.requestFullscreen().catch(() => { /* 退回 CSS 全螢幕 */ });
+        }
+    } else if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+    }
+    updateSigOrientationHint();
+    requestAnimationFrame(syncCanvasSize);
+}
+
+function toggleSigFullscreen() {
+    const modal = document.getElementById('sigModal');
+    setSigFullscreen(!modal.classList.contains('fullscreen'));
+}
+
+/**
+ * 綁定全螢幕狀態、視窗縮放與裝置旋轉事件
+ */
+function bindSigViewportEvents() {
+    const modal = document.getElementById('sigModal');
+    const onViewportChange = () => {
+        if (!modal.classList.contains('open')) return;
+        updateSigOrientationHint();
+        // 旋轉後瀏覽器需要一點時間更新版面，故延後再量測
+        requestAnimationFrame(() => requestAnimationFrame(syncCanvasSize));
+    };
+    window.addEventListener('resize', onViewportChange);
+    window.addEventListener('orientationchange', () => setTimeout(onViewportChange, 150));
+    document.addEventListener('fullscreenchange', () => {
+        // 使用者按 Esc／返回手勢退出原生全螢幕時，只退出全螢幕、保留簽名視窗
+        if (!document.fullscreenElement && modal.classList.contains('fullscreen')) {
+            setSigFullscreen(false);
+        }
+    });
 }
 
 /**
@@ -1102,6 +1202,7 @@ function clearCanvas() {
  * 儲存當前手寫內容並關閉簽名板視窗
  */
 function closeSigModal() {
+    setSigFullscreen(false);
     document.getElementById('sigModal').classList.remove('open');
     const isEditing = !!window._editingDate;
     const sigStatus = document.getElementById('sigStatus');
@@ -1334,6 +1435,8 @@ function bindUiEvents() {
     bindClick('sigOpenBtn', openSigModal);
     bindClick('sigClearBtn', clearCanvas);
     bindClick('sigCloseBtn', closeSigModal);
+    bindClick('sigFullscreenBtn', toggleSigFullscreen);
+    bindSigViewportEvents();
     bindClick('recordsBackAnchor', () => navigateTo('menu.html'));
 
     const dateInput = document.getElementById('date');

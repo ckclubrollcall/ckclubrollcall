@@ -102,7 +102,18 @@
 
         <div id="sigModal" class="modal-overlay">
           <div class="modal-content">
+            <button
+              id="sigFullscreenBtn"
+              class="sig-fullscreen-btn"
+              type="button"
+              aria-label="全螢幕"
+            >
+              <i class="bi bi-arrows-fullscreen"></i>
+            </button>
             <h3 id="sigModalTitle">老師請在此簽名</h3>
+            <div id="sigRotateHint" class="sig-rotate-hint">
+              建議將手機橫放，簽名空間更大
+            </div>
             <canvas id="sigCanvas"></canvas>
             <div class="btn-group">
               <button class="btn btn-red" id="sigClearBtn" type="button">
