@@ -98,11 +98,27 @@
           <label id="sigLabel">老師簽名</label>
           <button id="sigOpenBtn" type="button">點擊開啟簽名板</button>
           <div id="sigStatus">尚未簽名</div>
+          <img
+            id="sigPreview"
+            class="sig-preview"
+            alt="簽名預覽（點擊可重新簽名）"
+          />
         </div>
 
         <div id="sigModal" class="modal-overlay">
           <div class="modal-content">
+            <button
+              id="sigFullscreenBtn"
+              class="sig-fullscreen-btn"
+              type="button"
+              aria-label="全螢幕"
+            >
+              <i class="bi bi-arrows-fullscreen"></i>
+            </button>
             <h3 id="sigModalTitle">老師請在此簽名</h3>
+            <div id="sigRotateHint" class="sig-rotate-hint">
+              建議將手機橫放，簽名空間更大
+            </div>
             <canvas id="sigCanvas"></canvas>
             <div class="btn-group">
               <button class="btn btn-red" id="sigClearBtn" type="button">
