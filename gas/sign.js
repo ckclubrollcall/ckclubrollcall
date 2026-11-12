@@ -16,91 +16,11 @@ function renderClubReportDoc() {
       return;
     }
 
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const recordSheet = ss.getSheetByName("點名紀錄");
-    const summarySheet = ss.getSheetByName("統計總表");
+    // 2. 讀取「原始社團」建立社團對照字典 (社團名稱 -> 社團編號 & 指導老師)
+    const clubMap = getClubInfoMap();
 
-    // 2. 讀取統計總表建立社團對照字典 (社團名稱 -> 社團編號 & 指導老師)
-    const summaryData = summarySheet.getDataRange().getValues();
-    const clubMap = {};
-    for (let i = 1; i < summaryData.length; i++) {
-      const clubId = summaryData[i][0];
-      const clubName = summaryData[i][1];
-      const teacherName = summaryData[i][7] || "未填寫";
-      if (clubName) {
-        clubMap[clubName] = { id: clubId, teacher: teacherName };
-      }
-    }
-
-    // 3. 讀取點名紀錄，篩選出指定日期中各社團的最初「新增」老師簽名與最新的「編輯」修改者紀錄
-    const recordRange = recordSheet.getDataRange();
-    const recordData = recordRange.getValues();
-    const recordRichTexts = recordRange.getRichTextValues();
-    const numRows = recordData.length;
-
-    // 若啟用 Sheets API，批次讀取 K 欄之 chipRuns 以直接取得智慧方塊之原始 URI
-    const chipUrlMap = {};
-    try {
-      if (typeof Sheets !== "undefined" && Sheets.Spreadsheets && numRows > 1) {
-        const a1Range = "'點名紀錄'!K2:K" + numRows;
-        const resp = Sheets.Spreadsheets.get(ss.getId(), {
-          ranges: [a1Range],
-          fields: "sheets(data(rowData(values(chipRuns))))"
-        });
-        if (resp.sheets && resp.sheets[0] && resp.sheets[0].data && resp.sheets[0].data[0].rowData) {
-          const rowsData = resp.sheets[0].data[0].rowData;
-          for (let rIdx = 0; rIdx < rowsData.length; rIdx++) {
-            const rowItem = rowsData[rIdx];
-            if (rowItem && rowItem.values && rowItem.values[0] && rowItem.values[0].chipRuns) {
-              const chipRuns = rowItem.values[0].chipRuns;
-              for (let cIdx = 0; cIdx < chipRuns.length; cIdx++) {
-                const uri = chipRuns[cIdx].chip && chipRuns[cIdx].chip.richLinkProperties ? chipRuns[cIdx].chip.richLinkProperties.uri : null;
-                if (uri) {
-                  chipUrlMap[rIdx + 1] = uri; // 對應到 recordData 的 row index (j = rIdx + 1)
-                  break;
-                }
-              }
-            }
-          }
-        }
-      }
-    } catch (apiErr) {
-      logToSheet("讀取智慧方塊 API 失敗，將使用後備方式解析: " + apiErr.toString());
-    }
-
-    const clubRecords = {};
-
-    for (let j = 1; j < recordData.length; j++) {
-      const row = recordData[j];
-      const timestampVal = row[0];   // 填寫時間
-      const clubName = row[2];       // 社團名稱
-      const rwdDateStr = row[3];     // 社課日期
-
-      // 支援 Google Drive 檔案智慧方塊：
-      // 1. 優先取用 Sheets API chipRuns 解析出的 URI
-      // 2. 次之取用 RichText linkUrl
-      // 3. 若為檔案名稱文字，解析函式會自動透過 DriveApp/簽名資料夾依檔名找回檔案 ID
-      const sigChipUrl = chipUrlMap[j];
-      const sigRichText = (recordRichTexts && recordRichTexts[j] && recordRichTexts[j][10]) ? recordRichTexts[j][10].getLinkUrl() : null;
-      const signatureRaw = sigChipUrl || sigRichText || row[10];
-      const recordType = row[11] ? String(row[11]).trim() : "";
-
-      // 標準化日期格式進行比對
-      const recordDateFormatted = normalizeDate(rwdDateStr);
-      const targetDateFormatted = normalizeDate(targetDate);
-
-      if (recordDateFormatted === targetDateFormatted && clubName) {
-        const currentTimestamp = new Date(timestampVal);
-        if (!clubRecords[clubName]) {
-          clubRecords[clubName] = [];
-        }
-        clubRecords[clubName].push({
-          timestamp: currentTimestamp,
-          signatureRaw: signatureRaw,
-          recordType: recordType
-        });
-      }
-    }
+    // 3. 取得該日期各社團最初「新增」的老師簽名與最新「編輯」的修改者紀錄
+    const clubRecords = getSignatureRecordsByDate(targetDate);
 
     // 4. 驗證該日期是否真的有點名資料
     const clubsFound = Object.keys(clubRecords);
@@ -111,8 +31,8 @@ function renderClubReportDoc() {
 
     // 依社團編號排序
     clubsFound.sort(function (a, b) {
-      const idA = clubMap[a] ? clubMap[a].id : "";
-      const idB = clubMap[b] ? clubMap[b].id : "";
+      const idA = clubMap[a] ? String(clubMap[a].id) : "";
+      const idB = clubMap[b] ? String(clubMap[b].id) : "";
       return idA.localeCompare(idB);
     });
 
@@ -150,19 +70,8 @@ function renderClubReportDoc() {
 
     // 6. 逐列填入各社團資料並自雲端硬碟讀取簽名圖片插入表格中
     clubsFound.forEach(function (clubName) {
-      const rows = clubRecords[clubName];
-      // 依時間由舊到新排序
-      rows.sort(function (x, y) { return x.timestamp - y.timestamp; });
-
-      // 最初的「新增」紀錄為老師簽名
-      const createRecord = rows.filter(function (r) { return r.recordType === "新增"; })[0] || rows[0];
-      // 「編輯」紀錄清單
-      let editRecords = rows.filter(function (r) { return r.recordType === "編輯"; });
-      // 若無標註 recordType 但有多筆提交，後續筆數視為編輯紀錄（向後相容）
-      if (editRecords.length === 0 && rows.length > 1) {
-        editRecords = rows.slice(1);
-      }
-      const latestEdit = editRecords.length > 0 ? editRecords[editRecords.length - 1] : null;
+      const createRecord = clubRecords[clubName].createRecord;
+      const latestEdit = clubRecords[clubName].latestEdit;
 
       const info = clubMap[clubName] || { id: "-(未對應)-", teacher: "-(未對應)-" };
 
