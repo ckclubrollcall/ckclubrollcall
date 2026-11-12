@@ -548,7 +548,14 @@ function submitAttendance(data) {
     const fileName = data.date + "_" + safeClub + (isEdit ? "_修改者簽名.png" : "_老師簽名.png");
     const blob = Utilities.newBlob(Utilities.base64Decode(base64), "image/png", fileName);
     const file = folder.createFile(blob);
-    const fileUrl = file.getUrl(); // 取得檔案的公開/內部連結
+    // 簽名檔僅限擁有者與有權限者檢視，不開放連結存取（統計總表以 data URI 嵌入圖片，不需公開）
+    try {
+      file.setSharing(DriveApp.Access.PRIVATE, DriveApp.Permission.NONE);
+    } catch (shareErr) {
+      logToSheet("設定簽名檔為限制存取失敗: " + shareErr.toString());
+    }
+    const fileId = file.getId();
+    const fileUrl = file.getUrl();
 
     const lock = LockService.getScriptLock();
     if (!lock.tryLock(30000)) {
@@ -567,6 +574,9 @@ function submitAttendance(data) {
         if (!headerL) {
           sheet.getRange(1, 12).setValue("紀錄類別");
         }
+        if (!sheet.getRange(1, 13).getValue()) {
+          sheet.getRange(1, 13).setValue("簽名檔案ID");
+        }
       }
 
       // 附加新列至點名紀錄試算表
@@ -582,7 +592,8 @@ function submitAttendance(data) {
         safePresentCount,      // I: 出席總人數
         safeAbsentList,        // J: 換行缺席名單
         fileUrl,               // K: 老師簽名 / 修改者簽名 (將嘗試轉換為 Google Drive 智慧方塊)
-        recordType             // L: 紀錄類別 (新增 / 編輯)
+        recordType,            // L: 紀錄類別 (新增 / 編輯)
+        fileId                 // M: 簽名檔案 ID (供統計總表直接讀取)
       ]);
 
       const lastRow = sheet.getLastRow();
