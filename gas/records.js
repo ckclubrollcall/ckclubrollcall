@@ -19,7 +19,7 @@ const RECORD_COL = {
 /**
  * 讀取「原始社團」，回傳 { 社團名稱: { id, expected, teacher } }
  */
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars, no-redeclare
 function getClubInfoMap() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("原始社團");
   const map = {};
