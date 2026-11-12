@@ -147,6 +147,7 @@ function insertSigToTableCell(cell, sigRaw, defaultText) {
 /**
  * 輔助工具：將日期時間格式化為 yyyy/MM/dd HH:mm
  */
+// eslint-disable-next-line no-redeclare
 function formatDateTime(d) {
   if (!d || isNaN(d.getTime())) { return "無"; }
   const y = d.getFullYear();
@@ -213,6 +214,7 @@ function parseDriveId(input) {
 /**
  * 輔助工具：將多樣的日期物件或字串，標準化轉換為 yyyy/MM/dd 格式以利文字比對
  */
+// eslint-disable-next-line no-redeclare, no-unused-vars
 function normalizeDate(dateInput) {
   if (!dateInput) { return ""; }
   const d = new Date(dateInput);

@@ -19,6 +19,7 @@ const RECORD_COL = {
 /**
  * 讀取「原始社團」，回傳 { 社團名稱: { id, expected, teacher } }
  */
+// eslint-disable-next-line no-unused-vars
 function getClubInfoMap() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("原始社團");
   const map = {};
@@ -82,6 +83,7 @@ function readSignatureChipUris(ss, sheetName, numRows) {
  * signatureRaw 的取用順序：M 欄檔案 ID → 智慧方塊 URI → 儲存格連結 → K 欄文字（檔名），
  * 之後交由 parseDriveId 解析成 Drive 檔案 ID。
  */
+// eslint-disable-next-line no-unused-vars, no-redeclare
 function getSignatureRecordsByDate(targetDate) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const recordSheet = ss.getSheetByName("點名紀錄");
