@@ -548,7 +548,6 @@ function submitAttendance(data) {
     const fileName = data.date + "_" + safeClub + (isEdit ? "_修改者簽名.png" : "_老師簽名.png");
     const blob = Utilities.newBlob(Utilities.base64Decode(base64), "image/png", fileName);
     const file = folder.createFile(blob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); // 設定檔案為「任何知道連結的人都可以檢視」
     const fileUrl = file.getUrl(); // 取得檔案的公開/內部連結
 
     const lock = LockService.getScriptLock();
