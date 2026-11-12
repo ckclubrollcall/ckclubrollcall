@@ -572,6 +572,7 @@ async function enterNewFormMode() {
         sigStatus.textContent = '尚未簽名';
         sigStatus.style.display = 'none';
     }
+    updateSigPreview();
 
     loadStudents(info.club);
 }
@@ -897,6 +898,7 @@ async function enterEditMode(record, skipPush) {
     const sigStatus = document.getElementById('sigStatus');
     sigStatus.textContent = '尚未簽名（修改紀錄須由修改者簽名）';
     sigStatus.style.display = 'block';
+    updateSigPreview();
 
     // 重新綁定「確認修改」按鈕與下方「放棄修改」事件
     document.getElementById('submitBtn').textContent = '確認修改';
@@ -1195,7 +1197,23 @@ function clearCanvas() {
         sigStatus.textContent = isEditing ? '尚未簽名（修改紀錄須重新簽名）' : '尚未簽名';
         sigStatus.style.display = isEditing ? 'block' : 'none';
     }
+    updateSigPreview();
     if (window._originalRecord) checkIfFormChanged();
+}
+
+/**
+ * 依目前簽名內容更新表單上的簽名預覽縮圖（未簽名則隱藏）
+ */
+function updateSigPreview() {
+    const img = document.getElementById('sigPreview');
+    if (!img) return;
+    if (hasSigned && canvas && canvas.width && canvas.height) {
+        img.src = getSignatureDataURL();
+        img.style.display = 'block';
+    } else {
+        img.removeAttribute('src');
+        img.style.display = 'none';
+    }
 }
 
 /**
@@ -1204,6 +1222,7 @@ function clearCanvas() {
 function closeSigModal() {
     setSigFullscreen(false);
     document.getElementById('sigModal').classList.remove('open');
+    updateSigPreview();
     const isEditing = !!window._editingDate;
     const sigStatus = document.getElementById('sigStatus');
     if (sigStatus) {
@@ -1310,6 +1329,7 @@ async function restoreDraftIfExists() {
     hasSigned = false;
     document.getElementById('sigStatus').textContent = '尚未簽名';
     document.getElementById('sigStatus').style.display = 'none';
+    updateSigPreview();
 }
 
 // ==========================================
@@ -1436,6 +1456,7 @@ function bindUiEvents() {
     bindClick('sigClearBtn', clearCanvas);
     bindClick('sigCloseBtn', closeSigModal);
     bindClick('sigFullscreenBtn', toggleSigFullscreen);
+    bindClick('sigPreview', openSigModal);
     bindSigViewportEvents();
     bindClick('recordsBackAnchor', () => navigateTo('menu.html'));
 

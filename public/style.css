@@ -252,6 +252,19 @@ textarea {
     margin-top: 10px;
 }
 
+/* 簽名預覽 */
+.sig-preview {
+    display: none;
+    width: 100%;
+    max-height: 140px;
+    object-fit: contain;
+    margin-top: 10px;
+    background: #fff;
+    border: 1.5px dashed var(--gray-300);
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+
 /* 簽名面板 */
 .modal-overlay {
     display: none;
