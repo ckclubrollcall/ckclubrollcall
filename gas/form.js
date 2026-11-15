@@ -8,6 +8,10 @@ const SECURITY = {
   MAX_EMAIL_LEN: 100,   // 電子郵件最大字數
   SUBMIT_COOLDOWN_SEC: 60,   // 同一帳號兩次提交的最短間隔時間（防重複發送，單位：秒）
   ALLOWED_DATE_RANGE: 5,    // 允許點名補填或修改的天數範圍（往回算 5 天內）
+  MAX_TOKEN_LEN: 4096,   // Google ID Token 最大長度（實際約 1~2 KB）
+  MAX_BODY_LEN: 300000,   // POST 內容最大長度（簽名上限 200000 加上其餘欄位）
+  TOKEN_CACHE_MAX_SEC: 3600,   // 已驗證 Token 的快取秒數上限
+  MAX_LOGS_PER_MIN: 20,   // 每分鐘最多寫入「系統日誌」的列數，防止日誌被灌爆
 };
 
 // ==========================================
@@ -63,7 +67,36 @@ function isValidDate(dateStr) {
  * 判斷填寫者身份是否為「幹部」（只有幹部可以點名與修改）
  */
 function isOfficer(remark) {
-  return remark !== "社員" && remark !== "外部登入_社員";
+  const role = normalizeRemark(remark).replace(/^外部登入_/, "");
+  if (!role || role === "社員") { return false; }
+
+  // 若指令碼屬性 OFFICER_REMARKS 有設定（以逗號或頓號分隔的職稱清單），
+  // 則只有清單內的職稱才算幹部；未設定時維持「非社員即幹部」的相容行為。
+  const allowlist = getOfficerAllowlist();
+  if (allowlist) { return allowlist.indexOf(role) !== -1; }
+  return true;
+}
+
+/**
+ * 正規化身分欄：去除所有空白與零寬字元，空值一律視為「社員」
+ * 避免「社員 」這類多打空白的值被誤判為幹部。
+ */
+function normalizeRemark(remark) {
+  const s = String(remark === null || remark === undefined ? "" : remark)
+    .replace(/[\s\u200B\uFEFF]+/g, "");
+  return s || "社員";
+}
+
+/**
+ * 讀取指令碼屬性 OFFICER_REMARKS 作為幹部職稱白名單；未設定時回傳 null
+ */
+function getOfficerAllowlist() {
+  const raw = PropertiesService.getScriptProperties().getProperty("OFFICER_REMARKS");
+  if (!raw) { return null; }
+  const list = raw.split(/[,，、]/)
+    .map(function (s) { return normalizeRemark(s).replace(/^外部登入_/, ""); })
+    .filter(function (s) { return s && s !== "社員"; });
+  return list.length ? list : null;
 }
 
 /**
@@ -97,6 +130,13 @@ function parseDriveId(rawValue) {
 // eslint-disable-next-line no-redeclare
 function logToSheet(msg) {
   try {
+    // 每分鐘限制寫入列數，避免惡意請求灌爆試算表
+    const cache = CacheService.getScriptCache();
+    const bucketKey = "log_cnt_" + Math.floor(Date.now() / 60000);
+    const count = parseInt(cache.get(bucketKey), 10) || 0;
+    if (count >= SECURITY.MAX_LOGS_PER_MIN) { return; }
+    cache.put(bucketKey, String(count + 1), 120);
+
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     let sheet = ss.getSheetByName("系統日誌");
     if (!sheet) {
@@ -122,13 +162,35 @@ function verifyIdToken(idToken) {
     return null;
   }
   try {
+    const expectedClientId = PropertiesService.getScriptProperties().getProperty("OAUTH_CLIENT_ID");
+    if (!expectedClientId) {
+      logToSheet("verifyIdToken: 尚未設定 OAUTH_CLIENT_ID");
+      return null;
+    }
+
+    // 1. 本地預檢：格式、aud、exp 不對的 Token 直接拒絕，不消耗 UrlFetch 配額。
+    //    這裡的內容尚未驗簽，只用來過濾垃圾請求，不能當作身分依據。
+    const claims = peekIdTokenClaims(idToken);
+    const nowSec = Math.floor(Date.now() / 1000);
+    if (!claims || claims.aud !== expectedClientId || !(Number(claims.exp) > nowSec)) {
+      return null;
+    }
+
+    // 2. 已驗證過的 Token 直接取用快取，避免每個請求都呼叫 Google。
+    const cache = CacheService.getScriptCache();
+    const cacheKey = "idtok_" + Utilities.base64EncodeWebSafe(
+      Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, idToken)
+    );
+    const cachedEmail = cache.get(cacheKey);
+    if (cachedEmail) { return cachedEmail; }
+
+    // 3. 交由 Google 驗證簽章與效期。
     const url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + encodeURIComponent(idToken);
     const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
     if (response.getResponseCode() !== 200) {
       return null;
     }
     const payload = JSON.parse(response.getContentText());
-    const expectedClientId = PropertiesService.getScriptProperties().getProperty("OAUTH_CLIENT_ID");
     if (payload.aud !== expectedClientId) {
       logToSheet("Client ID 不符。");
       return null;
@@ -136,9 +198,35 @@ function verifyIdToken(idToken) {
     if (payload.email_verified !== "true" && payload.email_verified !== true) {
       return null;
     }
+    if (!payload.email || typeof payload.email !== "string") {
+      return null;
+    }
+
+    // 4. 快取到 Token 過期為止（最長 1 小時）。
+    const ttl = Math.min(Number(payload.exp) - nowSec, SECURITY.TOKEN_CACHE_MAX_SEC);
+    if (ttl > 0) {
+      cache.put(cacheKey, payload.email, ttl);
+    }
     return payload.email;
   } catch (e) {
     logToSheet("verifyIdToken 錯誤: " + e.toString());
+    return null;
+  }
+}
+
+/**
+ * 解析 ID Token 的 payload（不驗簽），格式不符時回傳 null
+ */
+function peekIdTokenClaims(idToken) {
+  if (typeof idToken !== "string" || idToken.length > SECURITY.MAX_TOKEN_LEN) { return null; }
+  if (!/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(idToken)) { return null; }
+  try {
+    let body = idToken.split(".")[1];
+    while (body.length % 4 !== 0) { body += "="; }
+    const json = Utilities.newBlob(Utilities.base64DecodeWebSafe(body)).getDataAsString("UTF-8");
+    const claims = JSON.parse(json);
+    return (claims && typeof claims === "object") ? claims : null;
+  } catch {
     return null;
   }
 }
@@ -210,6 +298,13 @@ function getLoginUserExternal(email) {
   const match = email.match(/^ck(\d+)/i); // 建中信箱前綴常為 ck + 學號
   if (match) { studentId = match[1]; }
 
+  // 取不到學號（例如教職員帳號）時必須直接拒絕，
+  // 否則空字串會比對到名單中學號空白的列，造成身分冒用。
+  if (!studentId) {
+    logToSheet("拒絕非學生帳號登入嘗試: " + email);
+    return { error: true, msg: "此帳號非學生帳號，無法登入" };
+  }
+
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("原始名單");
   const data = sheet.getDataRange().getValues();
 
@@ -217,7 +312,7 @@ function getLoginUserExternal(email) {
 
   for (let i = 1; i < data.length; i++) { // FIXME: Low efficiency, can be optimized.
     if (String(data[i][COL.ID]) === studentId) {
-      const remark = data[i][COL.REMARK] || "社員";
+      const remark = normalizeRemark(data[i][COL.REMARK]);
       return {
         email: email,
         id: studentId,
@@ -677,8 +772,16 @@ function doPost(e) {
     return jsonResponse({ status: "error", message: "沒有收到任何資料" }, corsHeaders);
   }
 
+  // 過大的請求在解析前就拒絕，且不寫入日誌
+  if (typeof e.postData.contents !== "string" || e.postData.contents.length > SECURITY.MAX_BODY_LEN) {
+    return jsonResponse({ status: "error", message: "請求內容過大" }, corsHeaders);
+  }
+
   try {
     const req = JSON.parse(e.postData.contents);
+    if (!req || typeof req !== "object") {
+      return jsonResponse({ status: "error", message: "請求格式不正確" }, corsHeaders);
+    }
     const action = req.action;
     let result;
     const token = (action === "submitAttendance") ? (req.data && req.data.token) : req.token;
@@ -693,7 +796,9 @@ function doPost(e) {
         result = auth.user;
         break;
       case "getClubMembers":
-        if (auth.user.club !== req.clubName && auth.user.remark !== "管理員") {
+        // 僅限本社幹部（或管理員）取得名單；名單含學號，一般社員不得讀取。
+        if (auth.user.remark !== "管理員" &&
+          (auth.user.club !== req.clubName || !isOfficer(auth.user.remark))) {
           return jsonResponse({ status: "error", message: "無權限查看此社團名單" }, corsHeaders);
         }
         result = getClubMembers(req.clubName);
