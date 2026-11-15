@@ -3,6 +3,11 @@
 function onOpen() {
   const ui = SpreadsheetApp.getUi();
 
+  ui.createMenu("統計總表")
+    .addItem("依 L3 日期重新整理", "refreshSummary")
+    .addItem("安裝自動更新觸發器（只需執行一次）", "installSummaryTrigger")
+    .addToUi();
+
   ui.createMenu("簽名報表")
     .addItem("產出指定日期簽名報表 (Google 文件)", "renderClubReportDoc")
     .addToUi();

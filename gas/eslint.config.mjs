@@ -29,6 +29,10 @@ export default defineConfig([
                 getSignFolderId: "readonly",
                 getReportFolderId: "readonly",
                 parseDriveId: "readonly",
+                normalizeDate: "readonly",
+                getSignatureRecordsByDate: "readonly",
+                formatDateTime: "readonly",
+                getClubInfoMap: "readonly",
             },
         },
         rules: {
